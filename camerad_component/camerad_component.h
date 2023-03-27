@@ -49,28 +49,38 @@ std::unordered_map<Format, std::string> formatToString = {
   {Format::YUYV, "YUYV"},
 };
 
+
+ExitHandler do_exit;
+
 class CameradComponent : public Component<> {
  public:
   bool Init() override;
   ~CameradComponent();
-  bool isSensorExist(const std::string& name) const;
-  std::string gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
-                                int display_width, int display_height, Format format, int framerate);
+  // bool isSensorExist(const std::string& name) const;
+  // std::string gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
+  //                               int display_width, int display_height, Format format, int framerate);
+  typedef void (*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt);
  
  private:
   void run();
-  void processing_thread();
-  void road_camera_thread(std::shared_ptr<CameraState>& s);
-  void run_camera(std::shared_ptr<CameraState>& s, cv::VideoCapture &video_cap, float *ts);
-  void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData>& out_msg);
+  void cameras_run(MultiCameraState *s);
+  void process_road_camera(MultiCameraState *s, CameraState *c, int cnt);
+  void road_camera_thread(CameraState *s);
+  void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts);
+  std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
 
+  // void processing_thread();
+  // void road_camera_thread(std::shared_ptr<CameraState>& s);
+  // void run_camera(std::shared_ptr<CameraState>& s, cv::VideoCapture &video_cap, float *ts);
+  // void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData>& out_msg);
+  void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
   std::shared_ptr<Writer<FrameData>> camera_writer_ = nullptr;
   std::shared_ptr<Writer<Thumbnail>> thumbnail_writer_ = nullptr;
 
   cl_device_id device_id;
   cl_context context;
   VisionIpcServer vipc_server;
-  std::shared_ptr<CameraState> road_cam;
+  // std::shared_ptr<CameraState> road_cam;
   std::shared_ptr<CameraConf> camera_conf_;
   std::string camera_name_;
   std::string sensor_mode_;
@@ -86,8 +96,8 @@ class CameradComponent : public Component<> {
   int buffer_size_ = 16;
   const int32_t MAX_IMAGE_SIZE = 20 * 1024 * 1024;
   std::future<void> async_result_;
-  std::future<void> res_;
-  std::future<void> lister_;
+  // std::future<void> res_;
+  // std::future<void> lister_;
   std::atomic<bool> running_ = {false};
 };
 

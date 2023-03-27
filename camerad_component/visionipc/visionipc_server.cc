@@ -22,10 +22,12 @@ std::string get_endpoint_name(std::string name, VisionStreamType type){
   }
 }
 
-void VisionIpcServer::setVisionIpcServer(std::string name, cl_device_id device_id, cl_context ctx) {
-  this->name = name;
-  this->device_id = device_id;
-  this->ctx = ctx;
+VisionIpcServer::VisionIpcServer(std::string name, cl_device_id device_id, cl_context ctx) 
+    : name(name), device_id(device_id), ctx(ctx)
+{
+  // this->name = name;
+  // this->device_id = device_id;
+  // this->ctx = ctx;
 
   msg_ctx = Context::create();
 
@@ -73,9 +75,9 @@ void VisionIpcServer::create_buffers(VisionStreamType type, size_t num_buffers, 
 }
 
 
-// void VisionIpcServer::start_listener(){
-//   listener_thread = std::thread(&VisionIpcServer::listener, this);
-// }
+void VisionIpcServer::start_listener(){
+  listener_thread = std::thread(&VisionIpcServer::listener, this);
+}
 
 
 void VisionIpcServer::listener(){
@@ -170,7 +172,7 @@ void VisionIpcServer::send(VisionBuf * buf, VisionIpcBufExtra * extra, bool sync
 
 VisionIpcServer::~VisionIpcServer(){
   should_exit = true;
-  // listener_thread.join();
+  listener_thread.join();
 
   // VisionBuf cleanup
   for( auto const& [type, buf] : buffers ) {

@@ -3,9 +3,20 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "camera_mipi",
+    srcs = ["camera_mipi.cc"],
+    hdrs = ["camera_mipi.h"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":camera_common",
+    ]
+)
+
+cc_library(
     name = "camera_common",
     srcs = ["camera_common.cc"],
-    hdrs = ["camera_common.h"],
+    hdrs = ["camera_common.h",
+            "//perception/camerad_component:camerad_component.h"],
     copts = ["-std=c++17"],
     deps = [
         "//cyber",

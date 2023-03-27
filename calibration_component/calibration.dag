@@ -1,5 +1,5 @@
 module_config {
-    module_library : "../bazel-bin/calibration_component/libcalibration_component.so"
+    module_library : "../bazel-bin/perception/calibration_component/libcalibration_component.so"
     components {
       class_name : "CalibrationComponent"
       config {

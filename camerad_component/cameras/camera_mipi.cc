@@ -12,10 +12,10 @@
 #include <opencv2/highgui.hpp>
 #pragma clang diagnostic pop
 
-#include "camerad_component/common/clutil.h"
-#include "camerad_component/common/swaglog.h"
-#include "camerad_component/common/timing.h"
-#include "camerad_component/common/util.h"
+#include "perception/camerad_component/common/clutil.h"
+#include "perception/camerad_component/common/swaglog.h"
+#include "perception/camerad_component/common/timing.h"
+#include "perception/camerad_component/common/util.h"
 
 #define FRAME_WIDTH  1164
 #define FRAME_HEIGHT 874
@@ -80,7 +80,7 @@ void camera_close(CameraState *s) {
 
 void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, 
                 cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type) {
-  assert(camera_id < std::size(cameras_supported));
+  // assert(camera_id < std::size(cameras_supported));
   s->ci = cameras_supported[camera_id];
   assert(s->ci.frame_width != 0);
 
@@ -225,67 +225,38 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_i
                VISION_STREAM_RGB_FRONT, VISION_STREAM_YUV_FRONT);
 
 
-  s->pm = new PubMaster({"roadCameraState", "driverCameraState","thumbnail"});
+  // s->pm = new PubMaster({"roadCameraState", "driverCameraState","thumbnail"});
 }
 
 void camera_autoexposure(CameraState *s, float grey_frac) {}
 
 void cameras_open(MultiCameraState *s) {
   camera_open(&s->road_cam, true);
-  camera_open(&s->driver_cam, true);
+  // camera_open(&s->driver_cam, true);
 }
 
 void cameras_close(MultiCameraState *s) {
   camera_close(&s->road_cam);
   camera_close(&s->driver_cam);
-  delete s->pm;
+  // delete s->pm;
 }
 
 void process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
   const CameraBuf *b = &c->buf;
-  MessageBuilder msg;
-  auto framed = msg.initEvent().initRoadCameraState();
-  fill_frame_data(framed, b->cur_frame_data);
-  framed.setImage(kj::arrayPtr((const uint8_t *)b->cur_yuv_buf->addr, b->cur_yuv_buf->len));
-  framed.setTransform(b->yuv_transform.v);
-  s->pm->send("roadCameraState", msg);
+  auto out_msg = std::make_shared<common_msgs::camerad::FrameData>();
+  fill_frame_data(b->cur_frame_data, out_msg);
+  out_msg->set_image(b->cur_yuv_buf->addr, b->cur_yuv_buf->len);
+  for(int i = 0; i < 9; i++){
+    out_msg->add_transform(b->yuv_transform.v[i]);
+  }
+  camera_writer_->Write(out_msg);
 }
-void process_driver_camera(MultiCameraState *s, CameraState *c, int cnt) {
-  const CameraBuf *b = &c->buf;
-  MessageBuilder msg;
-  auto framed = msg.initEvent().initDriverCameraState();
-  fill_frame_data(framed, b->cur_frame_data);
-  framed.setImage(kj::arrayPtr((const uint8_t *)b->cur_yuv_buf->addr, b->cur_yuv_buf->len));
-  framed.setTransform(b->yuv_transform.v);
-  s->pm->send("driverCameraState", msg);
-}
-
-void cameras_run(MultiCameraState *s) {
-
-  std::vector<std::thread> threads;
-  threads.push_back(start_process_thread(s, &s->road_cam, process_road_camera));
-  // threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
-
-  std::thread t_rear = std::thread(road_camera_thread, &s->road_cam);
-  set_thread_name("mipi_thread");
-
-  // std::thread t_front = std::thread(driver_camera_thread, &s->driver_cam);
-  // set_thread_name("mipidriver_thread");
-  
-
-  for (auto &t : threads) t.join();
-  // t_front.join();
-  t_rear.join();
-
-  cameras_close(s);
-}
-
-void party(cl_device_id device_id, cl_context context) {
-  MultiCameraState cameras = {};
-  VisionIpcServer vipc_server("camerad", device_id, context);
-  cameras_init(&vipc_server, &cameras, device_id, context);
-  cameras_open(&cameras);
-  vipc_server.start_listener();
-  cameras_run(&cameras);
-
-}
+// void process_driver_camera(MultiCameraState *s, CameraState *c, int cnt) {
+//   const CameraBuf *b = &c->buf;
+//   MessageBuilder msg;
+//   auto framed = msg.initEvent().initDriverCameraState();
+//   fill_frame_data(framed, b->cur_frame_data);
+//   framed.setImage(kj::arrayPtr((const uint8_t *)b->cur_yuv_buf->addr, b->cur_yuv_buf->len));
+//   framed.setTransform(b->yuv_transform.v);
+//   s->pm->send("driverCameraState", msg);
+// }

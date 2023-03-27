@@ -32,34 +32,35 @@
 
 const int YUV_COUNT = 100;
 
-// static cl_program build_debayer_program(cl_device_id device_id, cl_context context, const CameraInfo *ci, const CameraBuf *b, const CameraState *s) {
-//   char args[4096];
-//   snprintf(args, sizeof(args),
-//            "-cl-fast-relaxed-math -cl-denorms-are-zero "
-//            "-DFRAME_WIDTH=%d -DFRAME_HEIGHT=%d -DFRAME_STRIDE=%d "
-//            "-DRGB_WIDTH=%d -DRGB_HEIGHT=%d -DRGB_STRIDE=%d "
-//            "-DBAYER_FLIP=%d -DHDR=%d -DCAM_NUM=%d",
-//            ci->frame_width, ci->frame_height, ci->frame_stride,
-//            b->rgb_width, b->rgb_height, b->rgb_stride,
-//            ci->bayer_flip, ci->hdr, s->camera_num);
-//   const char *cl_file = Hardware::TICI() ? "cameras/real_debayer.cl" : "cameras/debayer.cl";
-//   return cl_program_from_file(context, device_id, cl_file, args);
-// }
+static cl_program build_debayer_program(cl_device_id device_id, cl_context context, const CameraInfo *ci, const CameraBuf *b, const CameraState *s) {
+  char args[4096];
+  snprintf(args, sizeof(args),
+           "-cl-fast-relaxed-math -cl-denorms-are-zero "
+           "-DFRAME_WIDTH=%d -DFRAME_HEIGHT=%d -DFRAME_STRIDE=%d "
+           "-DRGB_WIDTH=%d -DRGB_HEIGHT=%d -DRGB_STRIDE=%d "
+           "-DBAYER_FLIP=%d -DHDR=%d -DCAM_NUM=%d",
+           ci->frame_width, ci->frame_height, ci->frame_stride,
+           b->rgb_width, b->rgb_height, b->rgb_stride,
+           ci->bayer_flip, ci->hdr, s->camera_num);
+  const char *cl_file = Hardware::TICI() ? "perception/camerad_component/cameras/real_debayer.cl"
+                                         : "perception/camerad_component/cameras/debayer.cl";
+  return cl_program_from_file(context, device_id, cl_file, args);
+}
 // 分配内存，raw frame和RGB、YUV
-void CameraBuf::init(cl_device_id device_id, cl_context context, std::shared_ptr<CameraState>& s, VisionIpcServer * v, 
+void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState* s, VisionIpcServer * v, 
                   int frame_cnt, VisionStreamType rgb_type, VisionStreamType yuv_type) {
   vipc_server = v;
   this->rgb_type = rgb_type;
   this->yuv_type = yuv_type;
-  // this->release_callback = release_callback;
+  this->release_callback = release_callback;
 
   const CameraInfo *ci = &s->ci;
   camera_state = s;
   frame_buf_count = frame_cnt;  //16
 
   // RAW frame
-  const int frame_size = ci->frame_size;
-  // const int frame_size = ci->frame_height * ci->frame_stride;
+  // const int frame_size = ci->frame_size;
+  const int frame_size = ci->frame_height * ci->frame_stride;
   camera_bufs = std::make_unique<VisionBuf[]>(frame_buf_count);
   camera_bufs_metadata = std::make_unique<FrameMetadata[]>(frame_buf_count);
 
@@ -84,11 +85,11 @@ void CameraBuf::init(cl_device_id device_id, cl_context context, std::shared_ptr
 
   vipc_server->create_buffers(yuv_type, YUV_COUNT, false, rgb_width, rgb_height);
 
-//   if (ci->bayer) {
-//     cl_program prg_debayer = build_debayer_program(device_id, context, ci, this, s);
-//     krnl_debayer = CL_CHECK_ERR(clCreateKernel(prg_debayer, "debayer10", &err));
-//     CL_CHECK(clReleaseProgram(prg_debayer));
-//   }
+  if (ci->bayer) {
+    cl_program prg_debayer = build_debayer_program(device_id, context, ci, this, s);
+    krnl_debayer = CL_CHECK_ERR(clCreateKernel(prg_debayer, "debayer10", &err));
+    CL_CHECK(clReleaseProgram(prg_debayer));
+  }
 
   rgb2yuv = std::make_unique<Rgb2Yuv>(context, device_id, rgb_width, rgb_height, rgb_stride);
 
@@ -167,11 +168,11 @@ bool CameraBuf::acquire() {
   return true;
 }
 
-// void CameraBuf::release() {
-//   if (release_callback) {
-//     release_callback((void*)camera_state, cur_buf_idx);
-//   }
-// }
+void CameraBuf::release() {
+  if (release_callback) {
+    release_callback((void*)camera_state, cur_buf_idx);
+  }
+}
 
 void CameraBuf::queue(size_t buf_idx) {
   safe_queue.push(buf_idx);
@@ -179,21 +180,22 @@ void CameraBuf::queue(size_t buf_idx) {
 
 // // common functions
 
-// // void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &frame_data) {
-// //   framed.setFrameId(frame_data.frame_id);
-// //   framed.setTimestampEof(frame_data.timestamp_eof);
-// //   framed.setTimestampSof(frame_data.timestamp_sof);
-// //   framed.setFrameLength(frame_data.frame_length);
-// //   framed.setIntegLines(frame_data.integ_lines);
-// //   framed.setGain(frame_data.gain);
-// //   framed.setHighConversionGain(frame_data.high_conversion_gain);
-// //   framed.setMeasuredGreyFraction(frame_data.measured_grey_fraction);
-// //   framed.setTargetGreyFraction(frame_data.target_grey_fraction);
-// //   framed.setLensPos(frame_data.lens_pos);
-// //   framed.setLensSag(frame_data.lens_sag);
-// //   framed.setLensErr(frame_data.lens_err);
-// //   framed.setLensTruePos(frame_data.lens_true_pos);
-// // }
+void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<common_msgs::camerad::FrameData> &out_msg)
+{
+  out_msg->set_frame_id(frame_data.frame_id);
+  out_msg->set_timestamp_eof(frame_data.timestamp_eof);
+  out_msg->set_timestamp_sof(frame_data.timestamp_sof);
+  out_msg->set_frame_length(frame_data.frame_length);
+  out_msg->set_integ_lines(frame_data.integ_lines);
+  out_msg->set_gain(frame_data.gain);
+  out_msg->set_high_conversion_gain(frame_data.high_conversion_gain);
+  out_msg->set_measured_grey_fraction(frame_data.measured_grey_fraction);
+  out_msg->set_target_grey_fraction(frame_data.target_grey_fraction);
+  out_msg->set_lens_pos(frame_data.lens_pos);
+  out_msg->set_lens_sag(frame_data.lens_sag);
+  out_msg->set_lens_err(frame_data.lens_err);
+  out_msg->set_lens_true_pos(frame_data.lens_true_pos);
+}
 
 // // kj::Array<uint8_t> get_frame_image(const CameraBuf *b) {
 // //   static const int x_min = util::getenv("XMIN", 0);
@@ -274,16 +276,11 @@ void publish_thumbnail(std::shared_ptr<apollo::cyber::Writer<Thumbnail>>& writer
   jpeg_destroy_compress(&cinfo);
   free(row);
 
-  // MessageBuilder msg;
-  // auto thumbnaild = msg.initEvent().initThumbnail();
   auto out_msg = std::make_shared<common_msgs::camerad::Thumbnail>();
   out_msg->set_frame_id(b->cur_frame_data.frame_id);
-  // thumbnaild.setFrameId(b->cur_frame_data.frame_id);
   out_msg->set_timestamp_eof(b->cur_frame_data.timestamp_eof);
-  // thumbnaild.setTimestampEof(b->cur_frame_data.timestamp_eof);
   out_msg->set_thumbnail(thumbnail_buffer, thumbnail_len);
 
-  // pm->send("thumbnail", msg);
   writer->Write(out_msg);
   free(thumbnail_buffer);
 }
@@ -316,47 +313,40 @@ void publish_thumbnail(std::shared_ptr<apollo::cyber::Writer<Thumbnail>>& writer
 //   return lum_med / 256.0;
 // }
 
-// extern ExitHandler do_exit;
+extern ExitHandler do_exit;
 
-// // void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
-// // void processing_thread(MultiCameraState *cameras, CameraState *cs) {
-//   // const char *thread_name = nullptr;
-//   // if (cs == &cameras->road_cam) {
-//   //   thread_name = "RoadCamera";
-//   // } else if (cs == &cameras->driver_cam) {
-//   //   thread_name = "DriverCamera";
-//   // } else {
-//   //   thread_name = "WideRoadCamera";
-//   // }
-//   // set_thread_name(thread_name);
+// void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
+// // // void processing_thread(MultiCameraState *cameras, CameraState *cs) {
+//   const char *thread_name = nullptr;
+//   if (cs == &cameras->road_cam) {
+//     thread_name = "RoadCamera";
+//   } else if (cs == &cameras->driver_cam) {
+//     thread_name = "DriverCamera";
+//   } else {
+//     thread_name = "WideRoadCamera";
+//   }
+//   set_thread_name(thread_name);
 
-//   // uint32_t cnt = 0;
-// //   while (!do_exit) {
-// //     if (!cs->buf.acquire()) continue;
+//   uint32_t cnt = 0;
+//   while (!do_exit) {
+//     if (!cs->buf.acquire()) continue;
 
-// //     // callback(cameras, cs, cnt);
-// //       const CameraBuf *b = &c->buf;
-// //       MessageBuilder msg;
-// //       auto framed = msg.initEvent().initRoadCameraState();
-// //       fill_frame_data(framed, b->cur_frame_data);
-// //       framed.setImage(kj::arrayPtr((const uint8_t *)b->cur_yuv_buf->addr, b->cur_yuv_buf->len));
-// //       framed.setTransform(b->yuv_transform.v);
-// //       s->pm->send("roadCameraState", msg);
+//     callback(cameras, cs, cnt);
 
-// //     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
-// //       // this takes 10ms???
-// //       publish_thumbnail(cameras->pm, &(cs->buf));
-// //     }
-// //     cs->buf.release();
-// //     // ++cnt;
-// //   }
+//     if (cs == &(cameras->road_cam) && thumbnail_writer_ && cnt % 100 == 3) {
+//       // this takes 10ms???
+//       publish_thumbnail(thumbnail_writer_, &(cs->buf));
+//     }
+//     cs->buf.release();
+//     // ++cnt;
+//   }
 
-// //   return NULL;
-// // }
+//   return NULL;
+// }
 
-// // std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
-// //   return std::thread(processing_thread, cameras, cs, callback);
-// // }
+std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
+  return std::thread(processing_thread, cameras, cs, callback);
+}
 
 // // static void driver_cam_auto_exposure(CameraState *c, SubMaster &sm) {
 // //   static const bool is_rhd = Params().getBool("IsRHD");

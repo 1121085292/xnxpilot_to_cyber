@@ -22,7 +22,7 @@ class VisionIpcServer {
   uint64_t server_id;
 
   std::atomic<bool> should_exit{false};
-  // std::thread listener_thread;
+  std::thread listener_thread;
 
   std::map<VisionStreamType, std::atomic<size_t> > cur_idx;
   std::map<VisionStreamType, std::vector<VisionBuf*> > buffers;
@@ -31,18 +31,18 @@ class VisionIpcServer {
   Context * msg_ctx;
   std::map<VisionStreamType, PubSocket*> sockets;
 
-  // void listener(void);
+  void listener(void);
 
  public:
   VisionIpcServer() = default;
-  void setVisionIpcServer(std::string name, cl_device_id device_id=nullptr, cl_context ctx=nullptr);
+  VisionIpcServer(std::string name, cl_device_id device_id=nullptr, cl_context ctx=nullptr);
   ~VisionIpcServer();
 
   VisionBuf * get_buffer(VisionStreamType type);
 
   void create_buffers(VisionStreamType type, size_t num_buffers, bool rgb, size_t width, size_t height);
   void send(VisionBuf * buf, VisionIpcBufExtra * extra, bool sync=true);
-  // void start_listener();
-  void listener(void);
+  void start_listener();
+  // void listener(void);
 
 };

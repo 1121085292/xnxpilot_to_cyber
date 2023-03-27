@@ -1,5 +1,5 @@
 module_config {
-    module_library : "../bazel-bin/modeld_component/libmodeld_component.so"
+    module_library : "../bazel-bin/perception/modeld_component/libmodeld_component.so"
     components {
       class_name : "ModeldComponent"
       config {

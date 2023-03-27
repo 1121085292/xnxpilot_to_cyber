@@ -25,6 +25,10 @@ bool ModeldComponent::Init()
   AINFO << "models loaded, modeld starting";
 
   vipc_client_ = VisionIpcClient("camerad", wide_camera_ ? VISION_STREAM_YUV_WIDE : VISION_STREAM_YUV_BACK, true, device_id_, context_);
+  while (!vipc_client_.connect(false))
+  {
+    util::sleep_for(100);
+  }
   
   // frame_dropped_filter_.setFirstOrderFilter(0., 10., 1. / MODEL_FREQ);
   frame_dropped_filter_ = FirstOrderFilter(0., 10., 1. / MODEL_FREQ);
