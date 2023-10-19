@@ -1,0 +1,17 @@
+camera_name: "AR0233"
+frame_id:
+sensor_mode: "v4l2src"
+sensor_id: "/dev/video0"
+flip_method: "x-raw"
+display_width: 1920
+display_height: 1536
+format: YUY2
+frame_rate: 30
+fps: 20
+frame_width: 1164
+frame_heigth: 874
+frame_stride: 3
+bayer: false
+bayer_flip: false
+
+channel_name: "/xnxpilot/selfdrive/camerad"
