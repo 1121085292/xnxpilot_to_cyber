@@ -1,0 +1,10 @@
+module_config {
+    module_library : "/opt/apollo/neo/packages/camerad_component-dev/latest/lib/libcamerad_component.so"
+    components {
+      class_name : "CameradComponent"
+      config {
+        name : "camera_id_AR0233"
+        config_file_path : "/xnxpilot/selfdrive/camerad/conf/camera_id_AR0233.pb.txt"
+      }
+    }
+}
