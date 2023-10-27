@@ -1,7 +1,0 @@
-<cyber>
-    <module>
-        <name>cameradcomponent</name>
-        <dag_conf>/opt/apollo/neo/packages/camerad_component-dev/latest/lib/libcamerad_component.so</dag_conf>
-        <process_name>camerad</process_name>
-    </module>
-</cyber>
