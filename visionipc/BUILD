@@ -18,7 +18,9 @@ cc_library(
 
 cc_library(
     name = "visionbuf",
-    srcs = ["visionbuf.cc"],
+    srcs = ["visionbuf.cc",
+           "visionbuf_cl.cc"
+       ],
     hdrs = ["visionbuf.h",
             "visionipc.h"],
     copts = ["-std=c++17"],
