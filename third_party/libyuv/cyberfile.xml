@@ -1,0 +1,17 @@
+<package format="2">
+  <name>libyuv</name>
+  <version>1.0.0.1</version>
+  <description>
+    Apollo packaged 3rd-libyuv Lib.
+  </description>
+
+  <maintainer email="apollo-maintaner@baidu.com">Apollo</maintainer>
+  <license>Apache License 2.0</license>
+  <!-- <url type="website">https://www.apollo.auto/</url>
+  <url type="repository">https://github.com/ApolloAuto/apollo</url>
+  <url type="bugtracker">https://github.com/ApolloAuto/apollo/issues</url> -->
+
+  <type>module</type>
+  <src_path>//xnxpilot/third_party/libyuv</src_path>
+
+</package>
