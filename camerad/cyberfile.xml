@@ -1,0 +1,24 @@
+<package>
+    <name>camerad</name>
+    <version>1.0.0</version>
+    <description>
+    xnxpilot selfdrive camerad component
+    </description>
+    <maintainer email="apollo-support">apollo-support@baidu.com</maintainer>
+    <type>module</type>
+    <src_path>//xnxpilot/selfdrive/camerad</src_path>
+    <license>BSD</license>
+    <author>tang</author>
+    <depend type="binary" src_path="//cyber" repo_name="cyber">cyber-dev</depend>
+    <depend>bazel-extend-tools-dev</depend>
+    <depend lib_names="protobuf" repo_name="com_google_protobuf">3rd-protobuf-dev</depend>
+    <depend repo_name="zmq">zmq-dev</depend>
+    <depend repo_name="gles3">gles3-dev</depend>
+    <depend repo_name="jpeglib">jpeglib-dev</depend>
+    <depend repo_name="libyuv">libyuv-dev</depend>
+    <depend repo_name="opencl">opencl-dev</depend>
+    <depend repo_name="opencv" lib_names="core">3rd-opencv-dev</depend>
+    <depend repo_name="opencv" lib_names="highgui">3rd-opencv-dev</depend>
+
+    <builder>bazel</builder>
+</package>    
