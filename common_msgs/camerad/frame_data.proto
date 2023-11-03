@@ -1,56 +1,62 @@
 syntax = "proto2";
 
-package selfdrive.camerad;
+package common_msgs.camerad;
 
 message FrameData {
-  optional uint32 frameId = 1;
-  optional uint32 encodeId = 2; // DEPRECATED
+  optional uint32 frame_id = 1;
+  optional uint32 encode_id = 2 [deprecated = true];    //  DEPRECATED
+  
+  optional FrameType frame_type = 3;
+  optional int32 frame_length = 4;
 
-  frameType @7 :FrameType;
-  frameLength @3 :Int32;
+  //  Timestamps    
+  optional uint64 timestamp_eof = 5;
+  optional uint64 timestamp_sof = 6;
 
-  # Timestamps
-  timestampEof @2 :UInt64;
-  timestampSof @8 :UInt64;
+  //  Exposure
+  optional int32 integ_lines = 7;
+  optional bool high_conversion_gain = 8;
+  optional float gain = 23;
+  optional float measured_grey_fraction = 9;
+  optional float target_grey_fraction = 10;
 
-  # Exposure
-  integLines @4 :Int32;
-  highConversionGain @20 :Bool;
-  gain @15 :Float32; # This includes highConversionGain if enabled
-  measuredGreyFraction @21 :Float32;
-  targetGreyFraction @22 :Float32;
-
-  # Focus
-  lensPos @11 :Int32;
-  lensSag @12 :Float32;
-  lensErr @13 :Float32;
-  lensTruePos @14 :Float32;
-  focusVal @16 :List(Int16);
-  focusConf @17 :List(UInt8);
-  sharpnessScore @18 :List(UInt16);
-  recoverState @19 :Int32;
-
-  transform @10 :List(Float32);
-
-  androidCaptureResult @9 :AndroidCaptureResult;
-
-  image @6 :Data;
-  globalGainDEPRECATED @5 :Int32;
+  //  Focus
+  optional int32 lens_pos = 11;
+  optional float lens_sag = 12;
+  optional float lens_err = 13;
+  optional float lens_truePos = 14;
+  repeated int32 focus_val = 16;
+  repeated uint32 focus_conf = 17;
+  repeated uint32 sharpness_score = 18;
+  optional int32 recover_state = 19;
+  
+  repeated float transform = 15;
+  
+  optional AndroidCaptureResult android_capture_result = 20;
+  
+  optional bytes image = 21;
+  optional int32 global_gain_DEPRECATED =22 [deprecated = true];
 
   enum FrameType {
-    unknown @0;
-    neo @1;
-    chffrAndroid @2;
-    front @3;
+    unknown = 0;
+    neo = 1;
+    chffrAndroid = 2;
+    front = 3;
   }
 
-  struct AndroidCaptureResult {
-    sensitivity @0 :Int32;
-    frameDuration @1 :Int64;
-    exposureTime @2 :Int64;
-    rollingShutterSkew @3 :UInt64;
-    colorCorrectionTransform @4 :List(Int32);
-    colorCorrectionGains @5 :List(Float32);
-    displayRotation @6 :Int8;
+  message AndroidCaptureResult {
+    optional int32 sensitivity = 1;
+    optional int64 frame_duration = 2;
+    optional int64 exposure_time = 3;
+    optional uint64 rolling_shutterSkew = 4;
+    repeated int32 color_correction_transform = 5;
+    repeated float color_correction_gains = 6;
+    optional int32 display_rotation = 7;
   }
+}
+
+message Thumbnail {
+  optional uint32 frame_id = 1;
+  optional uint64 timestamp_eof = 2;
+  optional bytes thumnail = 3;
 }
