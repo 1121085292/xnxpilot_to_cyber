@@ -1,4 +1,4 @@
-#include "selfdrive/common/util.h"
+#include "util.h"
 
 #include <sys/stat.h>
 
@@ -78,6 +78,20 @@ std::string read_file(const std::string& fn) {
   return std::string();
 }
 
+std::vector<std::string> read_file_line(const std::string& fn) {
+  std::ifstream f(fn, std::ios::binary | std::ios::in);
+  std::vector<std::string> lines;
+
+  if(f.is_open()) {
+    std::string line;
+    while(std::getline(f, line)){
+      lines.push_back(line);
+    }
+    f.close();
+  }
+
+  return lines;
+}
 std::map<std::string, std::string> read_files_in_dir(const std::string &path) {
   std::map<std::string, std::string> ret;
   DIR *d = opendir(path.c_str());
