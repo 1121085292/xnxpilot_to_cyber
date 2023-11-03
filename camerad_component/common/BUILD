@@ -4,10 +4,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "common",
-    hdrs = [
-        "mat.h",
-        "modeldata.h",
-    ],
+    hdrs = glob(["*.h"]),
     copts = ["-std=c++17"],
     deps = [
         ":clutil",
@@ -24,7 +21,7 @@ cc_library(
     hdrs = ["clutil.h"],
     deps = [
         "util",
-        "@opencl",
+        "@xnxpilot//:opencl",
     ]
 )
 
