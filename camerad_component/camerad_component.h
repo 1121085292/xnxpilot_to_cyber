@@ -45,17 +45,17 @@ using common_msgs::camerad::Thumbnail;
 class CameradComponent : public Component<> {
  public:
   bool Init() override;
-  ~CameradComponent();
+  // ~CameradComponent();
   bool isSensorExist(const std::string& name) const;
-  std::string CameradComponent::gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
-                                int display_width, int display_height, Format format, int framerate);
+  // std::string gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
+  //                               int display_width, int display_height, Format format, int framerate);
  
  private:
-  void run();
-  void processing_thread();
-  void road_camera_thread(CameraState* s);
-  void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts);
-  void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData>& out_msg);
+  // void run();
+  // void processing_thread();
+  // void road_camera_thread(CameraState* s);
+  // void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts);
+  // void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData>& out_msg);
 
   std::shared_ptr<Writer<FrameData>> camera_writer_ = nullptr;
   std::shared_ptr<Writer<Thumbnail>> thumbnail_writer_ = nullptr;
@@ -64,12 +64,9 @@ class CameradComponent : public Component<> {
   cl_device_id device_id;
   cl_context context;
   std::shared_ptr<CameraState> road_cam;
-  VisionIpcServer vipc_server("camerad", device_id, context);
-  // const CameraInfo* camera_info
+  // VisionIpcServer vipc_server("camerad", device_id, context);
   // MultiCameraState cameras = {};
-
   std::shared_ptr<CameraConf> camera_conf_;
-
   std::string camera_name_;
   std::string sensor_mode_;
   std::string sensor_id_;
@@ -80,12 +77,12 @@ class CameradComponent : public Component<> {
   int frame_rate_;
   int fps_;
 
-  int index_ = 0;
-  int buffer_size_ = 16;
+  // int index_ = 0;
+  // int buffer_size_ = 16;
   const int32_t MAX_IMAGE_SIZE = 20 * 1024 * 1024;
-  std::future<void> async_result_;
-  std::future<void> res_;
-  std::atomic<bool> running_ = {false};
+  // std::future<void> async_result_;
+  // std::future<void> res_;
+  // std::atomic<bool> running_ = {false};
 };
 
 CYBER_REGISTER_COMPONENT(CameradComponent)
