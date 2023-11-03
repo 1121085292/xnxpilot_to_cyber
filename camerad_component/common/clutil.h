@@ -8,7 +8,6 @@
 #else
 #include <CL/cl.h>
 #endif
-#include "xnxpilot/selfdrive/common/util.h"
 
 #define CL_CHECK(_expr)          \
   do {                           \
