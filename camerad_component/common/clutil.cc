@@ -7,9 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-
-// #include "selfdrive/common/util.h"
-
+#include "util.h"
 namespace {  // helper functions
 
 template <typename Func, typename Id, typename Name>
@@ -78,9 +76,15 @@ cl_device_id cl_get_device_id(cl_device_type device_type) {
 }
 
 cl_program cl_program_from_file(cl_context ctx, cl_device_id device_id, const char* path, const char* args) {
-  std::string src = util::read_file(path);
+  // std::string src = util::read_file(path);
+  std::vector<std::string> src = util::read_file_line(path);
   assert(src.length() > 0);
-  cl_program prg = CL_CHECK_ERR(clCreateProgramWithSource(ctx, 1, (const char*[]){src.c_str()}, NULL, &err));
+  const char** programSource = new const char*[src.size()];
+  for(size_t i = 0; i < src.size(); ++i){
+    programSource[i] = src[i].c_str();
+  }
+  // cl_program prg = CL_CHECK_ERR(clCreateProgramWithSource(ctx, 1, (const char*[]){src.c_str()}, NULL, &err));
+  cl_program prg = CL_CHECK_ERR(clCreateProgramWithSource(ctx, src.size(), programSource, NULL, NULL));
   if (int err = clBuildProgram(prg, 1, &device_id, args, NULL, NULL); err != 0) {
     cl_print_build_errors(prg, device_id);
     assert(0);
