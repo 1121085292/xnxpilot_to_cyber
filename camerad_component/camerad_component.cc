@@ -14,7 +14,7 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "camerad/camerad_component.h"
+#include "camerad_component.h"
 
 bool CameradComponent::Init() {
   camera_conf_ = std::make_shared<CameraConf>();
@@ -69,132 +69,132 @@ bool CameradComponent::Init() {
   camera_state->buf.init(device_id, context, camera_state, &vipc_server, buffer_size_, 
                     VisionStreamType::VISION_STREAM_RGB_BACK, VisionStreamType::VISION_STREAM_YUV_BACK);
 
-  camera_writer_ = node_->CreateWriter<FrameDara>(camera_conf__->camera_channel_name());
-  thumbnail_writer_ = node_->CreateWriter<Thumbnail>(camera_conf__->thumbnail_channel_name());
+  camera_writer_ = node_->CreateWriter<FrameData>(camera_conf_->camera_channel_name());
+  thumbnail_writer_ = node_->CreateWriter<Thumbnail>(camera_conf_->thumbnail_channel_name());
 
-  async_result_ = apollo::cyber::Async(&CameradComponent::run, this);
-  res_ = apollo::cyber::Async(&CameradComponent::processing_thread, this);
+  // async_result_ = apollo::cyber::Async(&CameradComponent::run, this);
+  // res_ = apollo::cyber::Async(&CameradComponent::processing_thread, this);
   return true;
 }
 
-void CameradComponent::run() {
-    running_.exchange(true);
-    // poll camera image data
-    vipc_server.Listener();
+// void CameradComponent::run() {
+//     running_.exchange(true);
+//     // poll camera image data
+//     vipc_server.Listener();
 
-    road_camera_thread(camera_state);
+//     road_camera_thread(camera_state);
 
-}
+// }
 
-CameradComponent::~CameradComponent() {
-  if (running_.load()) {
-    running_.exchange(false);
-    async_result_.wait();
-    res_.wait();
-  }
-}
+// CameradComponent::~CameradComponent() {
+//   if (running_.load()) {
+//     running_.exchange(false);
+//     async_result_.wait();
+//     res_.wait();
+//   }
+// }
 
-std::string CameradComponent::gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
-                                int display_width, int display_height, Format format, int framerate) {
-    // sensor mode 1 = 1920 x 1080
-    // "v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1536, format=(string)YUY2, framerate=(fraction)30/1 ! appsink"
-    return sensor_mode + " device=" + sensor_id +
-           " ! video/" + flip_method +
-           ", width=(int)" + std::to_string(display_width) +
-           ", height=(int)" + std::to_string(display_height) +
-           ", format=(string)" + std::to_string(format) +
-           ", framerate=(fraction)" + std::to_string(framerate) +
-           "/1 ! appsink";
-}
+// std::string CameradComponent::gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
+//                                 int display_width, int display_height, Format format, int framerate) {
+//     // sensor mode 1 = 1920 x 1080
+//     // "v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1536, format=(string)YUY2, framerate=(fraction)30/1 ! appsink"
+//     return sensor_mode + " device=" + sensor_id +
+//            " ! video/" + flip_method +
+//            ", width=(int)" + std::to_string(display_width) +
+//            ", height=(int)" + std::to_string(display_height) +
+//            ", format=(string)" + std::to_string(format) +
+//            ", framerate=(fraction)" + std::to_string(framerate) +
+//            "/1 ! appsink";
+// }
 
 bool CameradComponent::isSensorExist(const std::string& name) const {
   auto it = kCameraName2CameraId.find(name);
   if(it != kCameraName2CameraId.end()){
-    return false;
+    camera_state->camera_num = it->second;
+    return true;
   }
-  camera_state->camera_num = it->second;
-  return true;
+  return false;
 }
 
-void CameradComponent::road_camera_thread(CameraState *s) {
-  std::string pipeline = gstreamer_pipeline(
-    sensor_mode_, // v4l2src
-    sensor_id_, // dev/video0
-    flip_method_, // x-raw
-    display_width_, // 1920
-    display_height_,  // 1536
-    format_,  //YUY2
-    frame_rate_);   //30
+// void CameradComponent::road_camera_thread(CameraState *s) {
+//   std::string pipeline = gstreamer_pipeline(
+//     sensor_mode_, // v4l2src
+//     sensor_id_, // dev/video0
+//     flip_method_, // x-raw
+//     display_width_, // 1920
+//     display_height_,  // 1536
+//     format_,  //YUY2
+//     frame_rate_);   //30
 
-  cv::VideoCapture cap_road(pipeline, cv::CAP_GSTREAMER); // road
-  float ts[9] = {1.50330396, 0.0, -59.40969163,
-                  0.0, 1.50330396, 76.20704846,
-                  0.0, 0.0, 1.0};
-  run_camera(s, cap_road, ts);
-  res_ = cyber::Async(&CameradComponent::processing_thread, this);
-}
+//   cv::VideoCapture cap_road(pipeline, cv::CAP_GSTREAMER); // road
+//   float ts[9] = {1.50330396, 0.0, -59.40969163,
+//                   0.0, 1.50330396, 76.20704846,
+//                   0.0, 0.0, 1.0};
+//   run_camera(s, cap_road, ts);
+//   res_ = cyber::Async(&CameradComponent::processing_thread, this);
+// }
 
-void CameradComponent::run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
-  assert(video_cap.isOpened());
+// void CameradComponent::run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
+//   assert(video_cap.isOpened());
 
-  cv::Size size(s->ci.frame_width, s->ci.frame_height);
-  const cv::Mat transform = cv::Mat(3, 3, CV_32F, ts);
-  uint32_t frame_id = 0;
-  size_t buf_idx = 0;
+//   cv::Size size(s->ci.frame_width, s->ci.frame_height);
+//   const cv::Mat transform = cv::Mat(3, 3, CV_32F, ts);
+//   uint32_t frame_id = 0;
+//   size_t buf_idx = 0;
 
-  while (!apollo::cyber::IsShutdown()) {
-    cv::Mat frame_mat, transformed_mat;
-    video_cap >> frame_mat;
-    cv::warpPerspective(frame_mat, transformed_mat, transform, size, cv::INTER_LINEAR, cv::BORDER_CONSTANT, 0);
+//   while (!apollo::cyber::IsShutdown()) {
+//     cv::Mat frame_mat, transformed_mat;
+//     video_cap >> frame_mat;
+//     cv::warpPerspective(frame_mat, transformed_mat, transform, size, cv::INTER_LINEAR, cv::BORDER_CONSTANT, 0);
 
-    s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
+//     s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
 
-    auto &buf = s->buf.camera_bufs[buf_idx];
-    int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
-    CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
+//     auto &buf = s->buf.camera_bufs[buf_idx];
+//     int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
+//     CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
 
-    s->buf.queue(buf_idx);
+//     s->buf.queue(buf_idx);
 
-    ++frame_id;
-    buf_idx = (buf_idx + 1) % buffer_size_;
-  }
-}
+//     ++frame_id;
+//     buf_idx = (buf_idx + 1) % buffer_size_;
+//   }
+// }
 
-void CameradComponent::processing_thread() {
-  uint32_t cnt = 0;
-  while (!apollo::cyber::IsShutdown()) {
-    if (!cs->buf.acquire()) continue;
-      const CameraBuf *b = &cs->buf;
-      auto out_msg = std::make_shared<FrameData>();
-      fill_frame_data(b->cur_frame_data, out_msg);
-      out_msg->set_Image(kj::arrayPtr((const uint8_t *)b->cur_yuv_buf->addr, b->cur_yuv_buf->len));
-      for(int i = 0; i < 9; i++){
-        out_msg->set_Transform(b->yuv_transform.v[i]);
-      }
-      // s->pm->send("roadCameraState", msg);
-      camera_writer_->Write(out_msg);
-    if (camera_state == &(cameras.road_cam) && thumbnail_writer_ && cnt % 100 == 3) {
-      // this takes 10ms???
-      publish_thumbnail(thumbnail_writer_, &(cs->buf));
-    }
-    // cs->buf.release();
-    ++cnt;
-  }
-}
+// void CameradComponent::processing_thread() {
+//   uint32_t cnt = 0;
+//   while (!apollo::cyber::IsShutdown()) {
+//     if (!cs->buf.acquire()) continue;
+//       const CameraBuf *b = &cs->buf;
+//       auto out_msg = std::make_shared<FrameData>();
+//       fill_frame_data(b->cur_frame_data, out_msg);
+//       out_msg->set_Image(kj::arrayPtr((const uint8_t *)b->cur_yuv_buf->addr, b->cur_yuv_buf->len));
+//       for(int i = 0; i < 9; i++){
+//         out_msg->set_Transform(b->yuv_transform.v[i]);
+//       }
+//       // s->pm->send("roadCameraState", msg);
+//       camera_writer_->Write(out_msg);
+//     if (camera_state == &(cameras.road_cam) && thumbnail_writer_ && cnt % 100 == 3) {
+//       // this takes 10ms???
+//       publish_thumbnail(thumbnail_writer_, &(cs->buf));
+//     }
+//     // cs->buf.release();
+//     ++cnt;
+//   }
+// }
 
-void CameradComponent::fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData> &out_msg)
-{
-  out_msg->set_frameid(frame_data.frame_id);
-  out_msg->set_timestampeof(frame_data.timestamp_eof);
-  out_msg->set_timestampsof(frame_data.timestamp_sof);
-  out_msg->set_framelength(frame_data.frame_length);
-  out_msg->set_integlines(frame_data.integ_lines);
-  out_msg->set_gain(frame_data.gain);
-  out_msg->set_highconversiongain(frame_data.high_conversion_gain);
-  out_msg->set_measuredgreyfraction(frame_data.measured_grey_fraction);
-  out_msg->set_targetgreyfraction(frame_data.target_grey_fraction);
-  out_msg->set_lenspos(frame_data.lens_pos);
-  out_msg->set_lenssag(frame_data.lens_sag);
-  out_msg->set_lenserr(frame_data.lens_err);
-  out_msg->set_lenstruepos(frame_data.lens_true_pos);
-}
+// void CameradComponent::fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData> &out_msg)
+// {
+//   out_msg->set_frameid(frame_data.frame_id);
+//   out_msg->set_timestampeof(frame_data.timestamp_eof);
+//   out_msg->set_timestampsof(frame_data.timestamp_sof);
+//   out_msg->set_framelength(frame_data.frame_length);
+//   out_msg->set_integlines(frame_data.integ_lines);
+//   out_msg->set_gain(frame_data.gain);
+//   out_msg->set_highconversiongain(frame_data.high_conversion_gain);
+//   out_msg->set_measuredgreyfraction(frame_data.measured_grey_fraction);
+//   out_msg->set_targetgreyfraction(frame_data.target_grey_fraction);
+//   out_msg->set_lenspos(frame_data.lens_pos);
+//   out_msg->set_lenssag(frame_data.lens_sag);
+//   out_msg->set_lenserr(frame_data.lens_err);
+//   out_msg->set_lenstruepos(frame_data.lens_true_pos);
+// }
