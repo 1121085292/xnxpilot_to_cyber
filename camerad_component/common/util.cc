@@ -92,6 +92,7 @@ std::vector<std::string> read_file_line(const std::string& fn) {
 
   return lines;
 }
+
 std::map<std::string, std::string> read_files_in_dir(const std::string &path) {
   std::map<std::string, std::string> ret;
   DIR *d = opendir(path.c_str());
