@@ -30,13 +30,13 @@ cc_library(
 
 )
 
-filegroup(
-    name = "conf",
-    srcs = [
-        ":camerad.dag",
-        ":camerad.launch",
-    ],
-)
+# filegroup(
+#     name = "conf",
+#     srcs = [
+#         ":camerad.dag",
+#         ":camerad.launch",
+#     ],
+# )
 
 # install(
 #     name = "install",
