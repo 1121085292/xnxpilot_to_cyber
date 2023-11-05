@@ -1,7 +1,7 @@
 <cyber>
     <module>
         <name>cameradcomponent</name>
-        <dag_conf>/apollo_workspace/xnxpilot/selfdrive/camerad/camerad.dag</dag_conf>
+        <dag_conf>/home/tang/apollo/camerad_component/camerad.dag</dag_conf>
         <process_name>camerad</process_name>
     </module>
 </cyber>

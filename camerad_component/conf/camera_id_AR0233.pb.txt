@@ -8,7 +8,7 @@ format: YUY2
 frame_rate: 30
 fps: 20
 frame_width: 1164
-frame_heigth: 874
+frame_height: 874
 bayer: false
 bayer_flip: false
 

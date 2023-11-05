@@ -36,8 +36,8 @@
 using apollo::cyber::Component;
 using apollo::cyber::Reader;
 using apollo::cyber::Writer;
-using selfdrive::camerad::CameraConf;
-using selfdrive::camerad::Format;
+using camerad_component::proto::CameraConf;
+using camerad_component::proto::Format;
 
 using common_msgs::camerad::FrameData;
 using common_msgs::camerad::Thumbnail;
@@ -71,7 +71,7 @@ class CameradComponent : public Component<> {
   std::string sensor_mode_;
   std::string sensor_id_;
   std::string flip_method_;
-  camerad::Format format_;
+  Format format_;
   int display_width_;
   int display_height_;
   int frame_rate_;

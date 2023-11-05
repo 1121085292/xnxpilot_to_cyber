@@ -9,14 +9,15 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//cyber",
-        "//xnxpilot/common_msgs/camerad:frame_data_cc_proto",
+        "//common_msgs/camerad:frame_data_cc_proto",
         # "//xnxpilot/selfdrive/camerad/imgproc:utils",
-        "//xnxpilot/selfdrive/camerad/transforms:rgb_to_yuv",
-        "//xnxpilot/selfdrive/common:common",
-        "//xnxpilot/cereal/visionipc:visionipc_server",
+        # "//xnxpilot/selfdrive/camerad/transforms:rgb_to_yuv",
+        # "//xnxpilot/cereal/visionipc:visionipc_server",
         # "//xnxpilot/third_party/libyuv:libyuv",   
         # "//xnxpilot/third_party/jpeglib:jpeglib",
-        "@libyuv",
-        "@jpeglib",
+        # "@libyuv",
+        # "@jpeglib",
+        "//camerad_component/common:clutil",
+        "@xnxpilot//:opencl",
     ]
 )

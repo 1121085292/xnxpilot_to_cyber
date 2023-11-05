@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package selfdrive.camerad;
+package camerad_component.proto;
 
 enum Format {
     RGB = 0;
@@ -16,8 +16,8 @@ message CameraConf {
     optional string sensor_mode = 3;
     optional string sensor_id = 4;
     optional string flip_method = 5;
-    optional uint32 dispaly_width = 6;
-    optional uint32 dispaly_height = 7;
+    optional uint32 display_width = 6;
+    optional uint32 display_height = 7;
     optional Format format = 8;
     optional uint32 frame_rate = 9;
 

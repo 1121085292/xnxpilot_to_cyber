@@ -66,8 +66,8 @@ bool CameradComponent::Init() {
   device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);
   context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
 
-  camera_state->buf.init(device_id, context, camera_state, &vipc_server, buffer_size_, 
-                    VisionStreamType::VISION_STREAM_RGB_BACK, VisionStreamType::VISION_STREAM_YUV_BACK);
+  // camera_state->buf.init(device_id, context, camera_state, &vipc_server, buffer_size_, 
+  //                   VisionStreamType::VISION_STREAM_RGB_BACK, VisionStreamType::VISION_STREAM_YUV_BACK);
 
   camera_writer_ = node_->CreateWriter<FrameData>(camera_conf_->camera_channel_name());
   thumbnail_writer_ = node_->CreateWriter<Thumbnail>(camera_conf_->thumbnail_channel_name());
@@ -110,7 +110,7 @@ bool CameradComponent::Init() {
 bool CameradComponent::isSensorExist(const std::string& name) const {
   auto it = kCameraName2CameraId.find(name);
   if(it != kCameraName2CameraId.end()){
-    camera_state->camera_num = it->second;
+    road_cam->camera_num = it->second;
     return true;
   }
   return false;
