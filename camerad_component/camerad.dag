@@ -1,0 +1,10 @@
+module_config {
+    module_library : "../bazel-bin/camerad_component/libcamerad_component.so"
+    components {
+      class_name : "CameradComponent"
+      config {
+        name : "camera_id_AR0233"
+        config_file_path : "/home/tang/apollo/camerad_component/conf/camera_id_AR0233.pb.txt"
+      }
+    }
+}
