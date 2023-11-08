@@ -49,7 +49,7 @@ message MetaData {
     repeated float desire_prediction =1;
     repeated float desire_state =5;
     repeated DisengagePredictions disengage_predictions =6;
-    optional Bool hard_brake_predicted =7;
+    optional bool hard_brake_predicted =7;
 
     // deprecated
     optional float brakeDisengageProbDEPRECATED =2;
@@ -71,7 +71,7 @@ message ModelDataV2 {
   optional uint32 frame_id = 19;
   optional uint32 frame_age = 1;
   optional float frame_drop_perc = 2;
-  optional unint64 timestamp_eof = 3;
+  optional uint64 timestamp_eof = 3;
   optional float model_execution_time =15;
   optional float gpu_execution_time =17;
   optional bytes  raw_predictions =16;
