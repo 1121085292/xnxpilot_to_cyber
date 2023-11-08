@@ -21,7 +21,7 @@ enum LaneChangeState {
 }
 
 enum LaneChangeDirection {
-    none = 0;
+    unknown = 0;
     left = 1;
     right = 2;
 }
