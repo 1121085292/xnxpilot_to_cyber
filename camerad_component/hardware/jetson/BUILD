@@ -7,6 +7,7 @@ cc_library(
     hdrs = [
         "hardware.h",
         "//camerad_component/common:params.h"
+        "//camerad_component/common:util.h"
     ],
     copts = ["-std=c++17"],
 )
