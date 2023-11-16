@@ -3,6 +3,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <optional>
 // #include <boost/optional.hpp>
 
 enum ParamKeyType {
@@ -54,7 +55,7 @@ public:
     std::istringstream iss(get(key, block));
     T value{};
     iss >> value;
-    return iss.fail() ? std::nullopt : std::optional(value);
+    return iss.fail() ? std::nullopt : std::optional<T>(value);
     // return iss.fail() ? boost::none : boost::optional<T>(value);
   }
 
