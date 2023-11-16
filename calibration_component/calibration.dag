@@ -1,0 +1,15 @@
+module_config {
+    module_library : "../bazel-bin/calibration_component/libcalibration_component.so"
+    components {
+      class_name : "CalibrationComponent"
+      config {
+        name : "CalibrationComponent"
+        readers {
+          channel: "CameraOdometry"
+        },
+        readers {
+          channel: "CarState"
+        }
+      }
+    }
+}
