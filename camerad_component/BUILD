@@ -19,6 +19,7 @@ cc_library(
     srcs = ["camerad_component.cc"],
     hdrs = ["camerad_component.h"],
     alwayslink = True,
+    copts = ["-std=c++17"],
     deps = [
         "//cyber",
         "//camerad_component/cameras:camera_common",
