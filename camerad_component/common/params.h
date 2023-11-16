@@ -3,7 +3,7 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include <boost/optional.hpp>
+// #include <boost/optional.hpp>
 
 enum ParamKeyType {
   PERSISTENT = 0x02,
@@ -49,13 +49,13 @@ public:
   }
 
   template <class T>
-  // std::optional<T> get(const char *key, bool block = false) {
-  boost::optional<T> get(const char *key, bool block = false) {
+  std::optional<T> get(const char *key, bool block = false) {
+  // boost::optional<T> get(const char *key, bool block = false) {
     std::istringstream iss(get(key, block));
     T value{};
     iss >> value;
-    // return iss.fail() ? std::nullopt : std::optional(value);
-    return iss.fail() ? boost::none : boost::optional<T>(value);
+    return iss.fail() ? std::nullopt : std::optional(value);
+    // return iss.fail() ? boost::none : boost::optional<T>(value);
   }
 
   inline bool getBool(const std::string &key) {
