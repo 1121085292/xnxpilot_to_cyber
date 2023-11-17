@@ -169,7 +169,7 @@ Eigen::Vector3d CalibrationComponent::handleCamOdom(
                         && (std::abs(cam_odom->rot(2) < MAX_YAW_RATE_FILTER));
 
   double angle_std_threshold = wide_camera_ ? (4 * MAX_VEL_ANGLE_STD) : MAX_VEL_ANGLE_STD;
-  bool certain_if_calib = (std::atan2(cam_odom->trans(1), cam_odom->trans(0)) < angle_std_threshold)
+  bool certain_if_calib = (std::atan2(cam_odom->trans_std(1), cam_odom->trans(0)) < angle_std_threshold)
                       || (valid_blocks_ < INPUTS_NEEDED);
   if(!(straight_and_fast && certain_if_calib)){
     return Eigen::Vector3d::Zero();
