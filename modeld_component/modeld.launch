@@ -1,0 +1,7 @@
+<cyber>
+    <module>
+        <name>modeldcomponent</name>
+        <dag_conf>/home/xzy/Downloads/apollo-master/modeld_component/modeld.dag</dag_conf>
+        <process_name>modeld</process_name>
+    </module>
+</cyber>
