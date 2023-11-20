@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package common_msgs.camera_odometry;
 
+import "modules/common_msgs/basic_msgs/error_code.proto";
+
 message CameraOdometry {
   // Translation in meters per second in device frame
   repeated float trans = 1;
@@ -20,4 +22,6 @@ message CameraOdometry {
 
   // Timestamp at the end of frame
   optional uint64 timestamp_eof = 6;
+
+  optional apollo.common.ErrorCode error_code = 7 [default = PERCEPTION_ERROR_NONE];
 }
