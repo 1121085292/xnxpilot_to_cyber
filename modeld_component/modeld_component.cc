@@ -91,6 +91,7 @@ bool ModeldComponent::Proc(const std::shared_ptr<FrameData> &frame_data,
 }
 
 void ModeldComponent::calibration_thread() {
+  running_.exchange(true);
   /*
      import numpy as np
      from common.transformations.model import medmodel_frame_from_road_frame
