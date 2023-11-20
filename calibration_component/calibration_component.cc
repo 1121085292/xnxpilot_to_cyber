@@ -57,11 +57,9 @@ bool CalibrationComponent::Init()
 
 bool CalibrationComponent::Proc(const std::shared_ptr<CarState>& car_state)
 {
-  if(apollo::cyber::OK()){
-    v_ego_ = car_state->v_ego();
-  }
   frame_++;
-  if(cam_odometry_ != nullptr){
+  if(cam_odometry_ != nullptr && cam_odometry_->error_code() == apollo::common::ErrorCode::OK){
+    v_ego_ = car_state->v_ego();
     auto new_rpy = handleCamOdom(cam_odometry);
     AINFO << "got new rpy :" << new_rpy;
   }
