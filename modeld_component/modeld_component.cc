@@ -170,3 +170,10 @@ void ModeldComponent::posenet_publish(uint32_t vipc_frame_id, uint32_t vipc_drop
 
   camera_odometry_writer_->Write(out_msg);
 }
+
+ModeldComponent::~ModeldComponent(){
+  if(running_.load()){
+    running_.exchange(false);
+    res_.wait();
+  }
+}
