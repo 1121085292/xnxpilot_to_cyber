@@ -37,9 +37,7 @@ class ModeldComponent : public Component<FrameData, LateralPlan> {
     bool Proc(const std::shared_ptr<FrameData>& frame_data,
               const std::shared_ptr<LateralPlan>& lateral_plan) override;
 
-    ~ModeldComponent(){
-      res_.wait();
-    }
+    ~ModeldComponent();
   private:
     void calibration_thread();
     void model_publish(uint32_t vipc_frame_id, uint32_t frame_id, float frame_drop,
