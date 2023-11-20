@@ -1,7 +1,0 @@
-<cyber>
-    <module>
-        <name>cameradcomponent</name>
-        <dag_conf>/home/nvidia/apollo/camerad_component/camerad.dag</dag_conf>
-        <process_name>camerad</process_name>
-    </module>
-</cyber>
