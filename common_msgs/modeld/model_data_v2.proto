@@ -95,4 +95,6 @@ message ModelDataV2 {
   repeated LeadDataV3 leads_v3 =18;
 
   repeated MetaData meta =12;
+
+  optional apollo.common.ErrorCode error_code = 20 [default = PERCEPTION_ERROR_NONE];
 }
