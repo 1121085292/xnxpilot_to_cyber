@@ -2,6 +2,7 @@ syntax = "proto2";
 
 package common_msgs.model_data_v2;
 
+import "modules/common_msgs/basic_msgs/error_code.proto";
 
 // All SI units and in device frame
 message XYZTData {
