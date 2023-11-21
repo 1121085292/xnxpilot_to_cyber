@@ -18,7 +18,7 @@ std::string calRecordReader(const std::string &readfile)
 {
   std::ifstream file(readfile);
   if(!file.is_open()){
-    return "";
+    return std::string();
   }
 
   RecordReader reader(readfile);
