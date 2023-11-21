@@ -33,6 +33,16 @@ cc_library(
 )
 
 cc_library(
+    name = "libyuv",
+    includes = ["include"],
+    hdrs = glob(["include/**/*"]),
+    linkopts = [
+        "-L/home/xzy/DowmLoads/apollo-master/xnxpilot/lib",
+        "-lyuv",
+    ],
+)
+
+cc_library(
     name = "jpeglib",
     includes = ["include"],
     hdrs = glob(["include/**/*"]),
