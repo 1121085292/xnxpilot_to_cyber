@@ -6,7 +6,7 @@ bool ModeldComponent::Init()
   model_data_v2_writer_ = node_->CreateWriter<ModelDataV2>("ModelDataV2"); 
 
   // calibration_ = std::make_shared<LiveCalibrationData>();
-  calibration_reader_ = node_->CreateWriter<LiveCalibrationData>(
+  calibration_reader_ = node_->CreateReader<LiveCalibrationData>(
       "liveCalibration", [this](const std::shared_ptr<LiveCalibrationData>& calibration){
         std::lock_guard<std::mutex> lock(mutex_);
         calibration_->CopyFrom(*calibration);
