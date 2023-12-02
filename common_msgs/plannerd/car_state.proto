@@ -1,0 +1,7 @@
+syntax = "proto2";
+
+package common_msgs.car_state;
+
+message CarState {
+  optional float v_ego = 1;
+}

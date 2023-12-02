@@ -21,3 +21,22 @@ py_proto_library(
    name = "lateral_plan_py_proto",
    deps = [":lateral_plan_proto"],
 )
+
+#=====================================
+#生成 proto 库
+proto_library(
+    name = "car_state_proto",
+    srcs = ["car_state.proto",],
+)
+
+#生成 C++ 相关的源文件
+cc_proto_library(
+    name = "car_state_cc_proto",
+    deps = [":car_state_proto",],
+)
+
+#生成 python 相关的源文件
+py_proto_library(
+   name = "car_state_py_proto",
+   deps = [":car_state_proto"],
+)

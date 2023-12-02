@@ -8,6 +8,9 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "camera_odometry_proto",
     srcs = ["camera_odometry.proto",],
+    deps = [
+        "//modules/common_msgs/basic_msgs:error_code_proto"
+    ]
 )
 
 #生成 C++ 相关的源文件
@@ -27,6 +30,9 @@ py_proto_library(
 proto_library(
     name = "model_data_v2_proto",
     srcs = ["model_data_v2.proto",],
+    deps = [
+        "//modules/common_msgs/basic_msgs:error_code_proto"
+    ]
 )
 #生成 C++ 相关的源文件
 cc_proto_library(
