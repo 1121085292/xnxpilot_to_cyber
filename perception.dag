@@ -1,0 +1,39 @@
+module_config {
+    module_library : "../bazel-bin/camerad_component/libcamerad_component.so"
+    components {
+      class_name : "CameradComponent"
+      config {
+        name : "camera_id_AR0233"
+        config_file_path : "../perception/camerad_component/conf/camera_id_AR0233.pb.txt"
+      }
+    }
+}
+
+module_config {
+    module_library : "../bazel-bin/calibration_component/libcalibration_component.so"
+    components {
+      class_name : "CalibrationComponent"
+      config {
+        name : "CalibrationComponent"
+        readers {
+          channel: "CarState"
+        }
+      }
+    }
+}
+
+module_config {
+    module_library : "../bazel-bin/modeld_component/libmodeld_component.so"
+    components {
+      class_name : "ModeldComponent"
+      config {
+        name : "ModeldComponent"
+        readers {
+          channel: "roadCameraState"
+        },
+        readers {
+          channel: "lateralPlan"
+        }
+      }
+    }
+}

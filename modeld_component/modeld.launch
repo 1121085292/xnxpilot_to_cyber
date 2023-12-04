@@ -1,0 +1,7 @@
+<cyber>
+    <module>
+        <name>modeldcomponent</name>
+        <dag_conf>perception/modeld_component/modeld.dag</dag_conf>
+        <process_name>modeld</process_name>
+    </module>
+</cyber>
