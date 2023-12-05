@@ -132,7 +132,8 @@ void CameradComponent::cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_
 
 void CameradComponent::camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, 
                 cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type) {
-  // assert(camera_id < std::size(cameras_supported));
+  initializeCameraInfo();
+  assert(camera_id < static_cast<int>(std::size(cameras_supported)));
   s->ci = cameras_supported[camera_id];
   assert(s->ci.frame_width != 0);
 
@@ -143,7 +144,7 @@ void CameradComponent::camera_init(VisionIpcServer * v, CameraState *s, int came
   
 }
 
-void CameradComponent::process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
+void process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
   const CameraBuf *b = &c->buf;
   auto out_msg = std::make_shared<common_msgs::camerad::FrameData>();
   fill_frame_data(b->cur_frame_data, out_msg);
@@ -154,13 +155,18 @@ void CameradComponent::process_road_camera(MultiCameraState *s, CameraState *c, 
   camera_writer_->Write(out_msg);
 }
 
-std::thread CameradComponent::start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
+std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
   return std::thread(processing_thread, cameras, cs, callback);
+//   return std::thread([this, cameras, cs, callback]() {
+//     this->processing_thread(cameras, cs, callback);
+// });
+
 }
 
 void CameradComponent::cameras_run(MultiCameraState *s) {
   std::vector<std::thread> threads;
   threads.push_back(start_process_thread(s, &s->road_cam, process_road_camera));
+
   // threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
 
   std::thread t_rear = std::thread(road_camera_thread, &s->road_cam);
@@ -169,7 +175,6 @@ void CameradComponent::cameras_run(MultiCameraState *s) {
   // std::thread t_front = std::thread(driver_camera_thread, &s->driver_cam);
   // set_thread_name("mipidriver_thread");
   
-
   for (auto &t : threads) t.join();
   // t_front.join();
   t_rear.join();
@@ -179,7 +184,7 @@ void CameradComponent::cameras_run(MultiCameraState *s) {
 
 
 
-void CameradComponent::road_camera_thread(CameraState *s) {
+void road_camera_thread(CameraState *s) {
   set_thread_name("mipi_road_camera_thread");
 
   // std::string pipeline = gstreamer_pipeline(
@@ -239,64 +244,8 @@ void CameradComponent::run_camera(CameraState *s, cv::VideoCapture &video_cap, f
     buf_idx = (buf_idx + 1) % FRAME_BUF_COUNT;
   }
 }
-// std::string CameradComponent::gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
-//                                 int display_width, int display_height, Format format, int framerate) {
-//     // sensor mode 1 = 1920 x 1080
-//     // "v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1536, format=(string)YUY2, framerate=(fraction)30/1 ! appsink"
-//     return sensor_mode + " device=" + sensor_id +
-//            " ! video/" + flip_method +
-//            ", width=(int)" + std::to_string(display_width) +
-//            ", height=(int)" + std::to_string(display_height) +
-//            ", format=(string)" + formatToString[format] +
-//            ", framerate=(fraction)" + std::to_string(framerate) +
-//            "/1 ! appsink";
-// }
 
-// bool CameradComponent::isSensorExist(const std::string& name) const {
-//   auto it = kCameraName2CameraId.find(name);
-//   if(it != kCameraName2CameraId.end()){
-//     road_cam->camera_num = it->second;
-//     return true;
-//   }
-//   return false;
-// }
-
-// void CameradComponent::road_camera_thread(std::shared_ptr<CameraState>& s) {
-//   std::string pipeline = gstreamer_pipeline(
-//     sensor_mode_, // v4l2src
-//     sensor_id_, // dev/video0
-//     flip_method_, // x-raw
-//     display_width_, // 1920
-//     display_height_,  // 1536
-//     format_,  //YUY2
-//     frame_rate_);   //30
-
-//   // cv::VideoCapture cap_road(pipeline); // road
-//   cv::VideoCapture cap_road("v4l2src device=/dev/video3 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink"); // road
-//   float ts[9] = {1.50330396, 0.0, -59.40969163,
-//                   0.0, 1.50330396, 76.20704846,
-//                   0.0, 0.0, 1.0};
-//   run_camera(s, cap_road, ts);
-// }
-
-// void CameradComponent::fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData> &out_msg)
-// {
-//   out_msg->set_frame_id(frame_data.frame_id);
-//   out_msg->set_timestamp_eof(frame_data.timestamp_eof);
-//   out_msg->set_timestamp_sof(frame_data.timestamp_sof);
-//   out_msg->set_frame_length(frame_data.frame_length);
-//   out_msg->set_integ_lines(frame_data.integ_lines);
-//   out_msg->set_gain(frame_data.gain);
-//   out_msg->set_high_conversion_gain(frame_data.high_conversion_gain);
-//   out_msg->set_measured_grey_fraction(frame_data.measured_grey_fraction);
-//   out_msg->set_target_grey_fraction(frame_data.target_grey_fraction);
-//   out_msg->set_lens_pos(frame_data.lens_pos);
-//   out_msg->set_lens_sag(frame_data.lens_sag);
-//   out_msg->set_lens_err(frame_data.lens_err);
-//   out_msg->set_lens_true_pos(frame_data.lens_true_pos);
-// }
-
-void *CameradComponent::processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
+void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
   const char *thread_name = nullptr;
   if (cs == &cameras->road_cam) {
     thread_name = "RoadCamera";
