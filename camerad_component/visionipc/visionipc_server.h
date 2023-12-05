@@ -21,7 +21,7 @@ class VisionIpcServer {
   cl_context ctx = nullptr;
   uint64_t server_id;
 
-  std::atomic<bool> should_exit{false};
+  std::atomic<bool> should_exit = {false};
   std::thread listener_thread;
 
   std::map<VisionStreamType, std::atomic<size_t> > cur_idx;
@@ -35,6 +35,7 @@ class VisionIpcServer {
 
  public:
   VisionIpcServer() = default;
+  VisionIpcServer& operator=(const VisionIpcServer&) {return *this;}
   VisionIpcServer(std::string name, cl_device_id device_id=nullptr, cl_context ctx=nullptr);
   ~VisionIpcServer();
 
@@ -43,6 +44,4 @@ class VisionIpcServer {
   void create_buffers(VisionStreamType type, size_t num_buffers, bool rgb, size_t width, size_t height);
   void send(VisionBuf * buf, VisionIpcBufExtra * extra, bool sync=true);
   void start_listener();
-  // void listener(void);
-
 };

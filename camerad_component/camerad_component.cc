@@ -70,7 +70,7 @@ bool CameradComponent::Init() {
   device_id = cl_get_device_id(CL_DEVICE_TYPE_GPU);
   // device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);
   context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
-
+  vipc_server = VisionIpcServer("camerad", device_id, context);
   // vipc_server.setVisionIpcServer("camerad", device_id, context);
   // road_cam->buf.init(device_id, context, road_cam, &vipc_server, buffer_size_, 
   //                   VisionStreamType::VISION_STREAM_RGB_BACK, VisionStreamType::VISION_STREAM_YUV_BACK);
@@ -85,9 +85,7 @@ bool CameradComponent::Init() {
 
 void CameradComponent::run() {
     running_.exchange(true);
-    // road_camera_thread(road_cam);
-    MultiCameraState cameras = {};
-    VisionIpcServer vipc_server("camerad", device_id, context);
+
     cameras_init(&vipc_server, &cameras, device_id, context);
     cameras_open(&cameras);
     vipc_server.start_listener();
@@ -102,6 +100,49 @@ CameradComponent::~CameradComponent() {
     // res_.wait();
   }
 }
+
+void CameradComponent::cameras_open(MultiCameraState *s) {
+  camera_open(&s->road_cam, true);
+  // camera_open(&s->driver_cam, true);
+}
+
+void CameradComponent::camera_open(CameraState *s, bool rear) {
+  // empty
+}
+
+// void CameradComponent::camera_close(CameraState *s) {
+//   // empty
+// }
+
+// void cameras_close(MultiCameraState *s) {
+//   camera_close(&s->road_cam);
+//   camera_close(&s->driver_cam);
+//   // delete s->pm;
+// }
+
+
+//此处需修改为实际使用的相机参数，包括相机型号和fps
+void CameradComponent::cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx) {
+  camera_init(v, &s->road_cam, CAMERA_ID_ISX031, 30, device_id, ctx,
+              VISION_STREAM_RGB_BACK, VISION_STREAM_YUV_BACK);
+  // camera_init(v, &s->driver_cam, CAMERA_ID_AR0233, 30, device_id, ctx,
+  //              VISION_STREAM_RGB_FRONT, VISION_STREAM_YUV_FRONT);
+
+}
+
+void CameradComponent::camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, 
+                cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type) {
+  // assert(camera_id < std::size(cameras_supported));
+  s->ci = cameras_supported[camera_id];
+  assert(s->ci.frame_width != 0);
+
+  s->camera_num = camera_id;
+  s->fps = fps;
+  
+  s->buf.init(device_id, ctx, s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
+  
+}
+
 void CameradComponent::process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
   const CameraBuf *b = &c->buf;
   auto out_msg = std::make_shared<common_msgs::camerad::FrameData>();
@@ -238,57 +279,6 @@ void CameradComponent::run_camera(CameraState *s, cv::VideoCapture &video_cap, f
 //   run_camera(s, cap_road, ts);
 // }
 
-// void CameradComponent::run_camera(std::shared_ptr<CameraState>& s, cv::VideoCapture &video_cap, float *ts) {
-//   assert(video_cap.isOpened());
-
-//   cv::Size size(s->ci.frame_width, s->ci.frame_height);
-//   const cv::Mat transform = cv::Mat(3, 3, CV_32F, ts);
-//   uint32_t frame_id = 0;
-//   size_t buf_idx = 0;
-
-//   while (!do_exit) {
-//     cv::Mat frame_mat, transformed_mat;
-//     video_cap >> frame_mat;
-//     cv::warpPerspective(frame_mat, transformed_mat, transform, size, cv::INTER_LINEAR, cv::BORDER_CONSTANT, 0);
-//     // AINFO << transformed_mat;
-//     // cv::imshow("original", transformed_mat);
-//     // cv::waitKey(0);
-//     //cv::imwrite("/home/nvidia/apollo/data/1.jpg", transformed_mat);
-//     s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
-
-//     auto &buf = s->buf.camera_bufs[buf_idx];
-//     int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
-//     CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
-
-//     s->buf.queue(buf_idx);
-
-//     ++frame_id;
-//     buf_idx = (buf_idx + 1) % buffer_size_;
-//   }
-// }
-
-// void CameradComponent::processing_thread() {
-//   uint32_t cnt = 0;
-//   while (!apollo::cyber::IsShutdown()) {
-//     if (!road_cam->buf.acquire()) continue;
-//       const CameraBuf *b = &road_cam->buf;
-//       auto out_msg = std::make_shared<FrameData>();
-//       fill_frame_data(b->cur_frame_data, out_msg);
-//       out_msg->set_image(b->cur_yuv_buf->addr, b->cur_yuv_buf->len);
-//       for(int i = 0; i < 9; i++){
-//         out_msg->add_transform(b->yuv_transform.v[i]);
-//       }
-//       // s->pm->send("roadCameraState", msg);
-//       camera_writer_->Write(out_msg);
-//     if (thumbnail_writer_ && cnt % 100 == 3) {
-//       // this takes 10ms???
-//       publish_thumbnail(thumbnail_writer_, &(road_cam->buf));
-//     }
-//     // cs->buf.release();
-//     ++cnt;
-//   }
-// }
-
 // void CameradComponent::fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData> &out_msg)
 // {
 //   out_msg->set_frame_id(frame_data.frame_id);
@@ -307,7 +297,6 @@ void CameradComponent::run_camera(CameraState *s, cv::VideoCapture &video_cap, f
 // }
 
 void *CameradComponent::processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
-// // void processing_thread(MultiCameraState *cameras, CameraState *cs) {
   const char *thread_name = nullptr;
   if (cs == &cameras->road_cam) {
     thread_name = "RoadCamera";
@@ -329,7 +318,7 @@ void *CameradComponent::processing_thread(MultiCameraState *cameras, CameraState
       publish_thumbnail(thumbnail_writer_, &(cs->buf));
     }
     cs->buf.release();
-    // ++cnt;
+    ++cnt;
   }
 
   return NULL;

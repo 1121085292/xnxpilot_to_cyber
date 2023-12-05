@@ -17,22 +17,67 @@
 // #include "xnxpilot/selfdrive/common/visionimg.h"
 #include "common_msgs/camerad/frame_data.pb.h"
 #include "perception/camerad_component/common/clutil.h"
-#include "camera_mipi.h"
+// #include "camera_mipi.h"
 #include "cyber/cyber.h"
 
-// #define CAMERA_ID_IMX298 0
-// #define CAMERA_ID_IMX179 1
-// #define CAMERA_ID_S5K3P8SP 2
-// #define CAMERA_ID_OV8865 3
-// #define CAMERA_ID_IMX298_FLIPPED 4
-// #define CAMERA_ID_OV10640 5
-// #define CAMERA_ID_LGC920 6
+#define FRAME_BUF_COUNT 16
+#define FRAME_WIDTH  1164
+#define FRAME_HEIGHT 874
+#define FRAME_WIDTH_FRONT  640
+#define FRAME_HEIGHT_FRONT 320
+
+#define CAMERA_ID_IMX298 0
+#define CAMERA_ID_IMX179 1
+#define CAMERA_ID_S5K3P8SP 2
+#define CAMERA_ID_OV8865 3
+#define CAMERA_ID_IMX298_FLIPPED 4
+#define CAMERA_ID_OV10640 5
+#define CAMERA_ID_LGC920 6
 // #define CAMERA_ID_LGC615 7
-// #define CAMERA_ID_AR0231 8
+#define CAMERA_ID_ISX031 7
+#define CAMERA_ID_AR0231 8
 // #define CAMERA_ID_IMX477 9
-// #define CAMERA_ID_MAX 10
+#define CAMERA_ID_AR0233 9
+#define CAMERA_ID_MAX 10
 
 #define UI_BUF_COUNT 4
+// #define FRAME_WIDTH  1164
+// #define FRAME_HEIGHT 874
+// #define FRAME_WIDTH_FRONT  1152
+// #define FRAME_HEIGHT_FRONT 864
+typedef struct CameraInfo {
+  int frame_width; 
+  int frame_height;
+  int frame_stride;
+  bool bayer;
+  int bayer_flip;
+  bool hdr;
+} CameraInfo;
+
+CameraInfo cameras_supported[CAMERA_ID_MAX] = {};
+//   // road facing
+//   // [CAMERA_ID_IMX477] = {
+//   //     .frame_width = FRAME_WIDTH,
+//   //     .frame_height = FRAME_HEIGHT,
+//   //     .frame_stride = FRAME_WIDTH*3,
+//   //     .bayer = false,
+//   //     .bayer_flip = false,
+//   // },
+//   [CAMERA_ID_AR0233] = {
+//       .frame_width = FRAME_WIDTH_FRONT,
+//       .frame_height = FRAME_HEIGHT_FRONT,
+//       .frame_stride = FRAME_WIDTH_FRONT*3,
+//       .bayer = false,
+//       .bayer_flip = false,
+//   },
+//   // [CAMERA_ID_ISX031] = {
+//   //     FRAME_WIDTH,
+//   //     FRAME_HEIGHT,
+//   //     FRAME_WIDTH*3,
+//   //     false,
+//   //     false,
+//   // },
+// };
 
 using common_msgs::camerad::Thumbnail;
 using common_msgs::camerad::FrameData;
@@ -77,14 +122,7 @@ enum CameraType {
 
 typedef void (*release_cb)(void *cookie, int buf_idx);
 
-typedef struct CameraInfo {
-  int frame_width, frame_height;
-  int frame_stride;
-  int frame_size;
-  bool bayer;
-  int bayer_flip;
-  bool hdr;
-} CameraInfo;
+
 
 typedef struct LogCameraInfo {
   CameraType type;
@@ -170,12 +208,27 @@ public:
   void queue(size_t buf_idx);
 };
 
-typedef void (*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt);
+
+typedef struct CameraState {
+  CameraInfo ci;
+  int camera_num;
+  int fps;
+  float digital_gain;
+  CameraBuf buf;
+} CameraState;
+
+
+typedef struct MultiCameraState {
+  CameraState road_cam;
+  CameraState driver_cam;
+
+//   SubMaster *sm;
+//   PubMaster *pm;
+} MultiCameraState;
 
 void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<common_msgs::camerad::FrameData>& out_msg);
 // kj::Array<uint8_t> get_frame_image(const CameraBuf *b);
 // float set_exposure_target(const CameraBuf *b, int x_start, int x_end, int x_skip, int y_start, int y_end, int y_skip);
-std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
 // void common_process_driver_camera(SubMaster *sm, PubMaster *pm, CameraState *c, int cnt);
 
 void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx);

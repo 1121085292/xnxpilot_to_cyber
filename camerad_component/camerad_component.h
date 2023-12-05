@@ -49,8 +49,7 @@ std::unordered_map<Format, std::string> formatToString = {
   {Format::YUYV, "YUYV"},
 };
 
-
-ExitHandler do_exit;
+extern ExitHandler do_exit;
 
 class CameradComponent : public Component<> {
  public:
@@ -60,20 +59,33 @@ class CameradComponent : public Component<> {
   // std::string gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
   //                               int display_width, int display_height, Format format, int framerate);
   typedef void (*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt);
- 
+
  private:
   void run();
-  void cameras_run(MultiCameraState *s);
+
+
+  void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx);
+  void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, 
+                cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type);
+  void cameras_open(MultiCameraState *s);
+  void camera_open(CameraState *s, bool rear);
+
   void process_road_camera(MultiCameraState *s, CameraState *c, int cnt);
-  void road_camera_thread(CameraState *s);
+
+  static void road_camera_thread(CameraState *s);
   void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts);
+
+
   std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
+
+  void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
+
+  void cameras_run(MultiCameraState *s);
 
   // void processing_thread();
   // void road_camera_thread(std::shared_ptr<CameraState>& s);
   // void run_camera(std::shared_ptr<CameraState>& s, cv::VideoCapture &video_cap, float *ts);
   // void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData>& out_msg);
-  void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
   std::shared_ptr<Writer<FrameData>> camera_writer_ = nullptr;
   std::shared_ptr<Writer<Thumbnail>> thumbnail_writer_ = nullptr;
 
@@ -81,6 +93,8 @@ class CameradComponent : public Component<> {
   cl_context context;
   VisionIpcServer vipc_server;
   // std::shared_ptr<CameraState> road_cam;
+  MultiCameraState cameras;
+
   std::shared_ptr<CameraConf> camera_conf_;
   std::string camera_name_;
   std::string sensor_mode_;
@@ -100,5 +114,8 @@ class CameradComponent : public Component<> {
   // std::future<void> lister_;
   std::atomic<bool> running_ = {false};
 };
+
+// typedef void (CameradComponent::*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt);
+
 
 CYBER_REGISTER_COMPONENT(CameradComponent)

@@ -8,21 +8,27 @@
 
 #include "camera_common.h"
 
-#define FRAME_BUF_COUNT 16
-
-typedef struct CameraState {
-  CameraInfo ci;
-  int camera_num;
-  int fps;
-  float digital_gain;
-  CameraBuf buf;
-} CameraState;
-
-
-typedef struct MultiCameraState {
-  CameraState road_cam;
-  CameraState driver_cam;
-
-//   SubMaster *sm;
-//   PubMaster *pm;
-} MultiCameraState;
+CameraInfo cameras_supported[CAMERA_ID_MAX] = {
+  // road facing
+  // [CAMERA_ID_IMX477] = {
+  //     .frame_width = FRAME_WIDTH,
+  //     .frame_height = FRAME_HEIGHT,
+  //     .frame_stride = FRAME_WIDTH*3,
+  //     .bayer = false,
+  //     .bayer_flip = false,
+  // },
+  [CAMERA_ID_AR0233] = {
+      FRAME_WIDTH_FRONT,
+      FRAME_HEIGHT_FRONT,
+      FRAME_WIDTH_FRONT*3,
+      false,
+      false,
+  },
+  [CAMERA_ID_ISX031] = {
+      FRAME_WIDTH,
+      FRAME_HEIGHT,
+      FRAME_WIDTH*3,
+      false,
+      false,
+  },
+};

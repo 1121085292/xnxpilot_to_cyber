@@ -59,7 +59,6 @@ void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState* s,
   frame_buf_count = frame_cnt;  //16
 
   // RAW frame
-  // const int frame_size = ci->frame_size;
   const int frame_size = ci->frame_height * ci->frame_stride;
   camera_bufs = std::make_unique<VisionBuf[]>(frame_buf_count);
   camera_bufs_metadata = std::make_unique<FrameMetadata[]>(frame_buf_count);
@@ -116,7 +115,7 @@ bool CameraBuf::acquire() {
   if (static_cast<int>(camera_bufs_metadata[cur_buf_idx].frame_id)== -1) {
     // LOGE("no frame data? wtf");
     AERROR << "no frame data? wtf";
-    // release();
+    release();
     return false;
   }
 
@@ -344,9 +343,7 @@ extern ExitHandler do_exit;
 //   return NULL;
 // }
 
-std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
-  return std::thread(processing_thread, cameras, cs, callback);
-}
+
 
 // // static void driver_cam_auto_exposure(CameraState *c, SubMaster &sm) {
 // //   static const bool is_rhd = Params().getBool("IsRHD");
