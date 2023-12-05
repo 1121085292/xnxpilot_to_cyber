@@ -54,29 +54,48 @@ typedef struct CameraInfo {
   bool hdr;
 } CameraInfo;
 
-CameraInfo cameras_supported[CAMERA_ID_MAX] = {};
-//   // road facing
-//   // [CAMERA_ID_IMX477] = {
-//   //     .frame_width = FRAME_WIDTH,
-//   //     .frame_height = FRAME_HEIGHT,
-//   //     .frame_stride = FRAME_WIDTH*3,
-//   //     .bayer = false,
-//   //     .bayer_flip = false,
-//   // },
-//   [CAMERA_ID_AR0233] = {
-//       .frame_width = FRAME_WIDTH_FRONT,
-//       .frame_height = FRAME_HEIGHT_FRONT,
-//       .frame_stride = FRAME_WIDTH_FRONT*3,
-//       .bayer = false,
-//       .bayer_flip = false,
-//   },
-//   // [CAMERA_ID_ISX031] = {
-//   //     FRAME_WIDTH,
-//   //     FRAME_HEIGHT,
-//   //     FRAME_WIDTH*3,
-//   //     false,
-//   //     false,
-//   // },
+CameraInfo cameras_supported[CAMERA_ID_MAX];
+
+void initializeCameraInfo() {
+    cameras_supported[CAMERA_ID_AR0233] = {
+        .frame_width = FRAME_WIDTH_FRONT,
+        .frame_height = FRAME_HEIGHT_FRONT,
+        .frame_stride = FRAME_WIDTH_FRONT * 3,
+        .bayer = false,
+        .bayer_flip = false,
+    };
+
+      cameras_supported[CAMERA_ID_ISX031] = {
+      FRAME_WIDTH,
+      FRAME_HEIGHT,
+      FRAME_WIDTH*3,
+      false,
+      false,
+    };
+}
+//  = {
+  // road facing
+  // [CAMERA_ID_IMX477] = {
+  //     .frame_width = FRAME_WIDTH,
+  //     .frame_height = FRAME_HEIGHT,
+  //     .frame_stride = FRAME_WIDTH*3,
+  //     .bayer = false,
+  //     .bayer_flip = false,
+  // },
+  // [CAMERA_ID_AR0233] = {
+  //     .frame_width = FRAME_WIDTH_FRONT,
+  //     .frame_height = FRAME_HEIGHT_FRONT,
+  //     .frame_stride = FRAME_WIDTH_FRONT*3,
+  //     .bayer = false,
+  //     .bayer_flip = false,
+  // },
+  // [CAMERA_ID_ISX031] = {
+  //     FRAME_WIDTH,
+  //     FRAME_HEIGHT,
+  //     FRAME_WIDTH*3,
+  //     false,
+  //     false,
+  // },
 // };
 
 using common_msgs::camerad::Thumbnail;
