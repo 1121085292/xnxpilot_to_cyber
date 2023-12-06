@@ -80,7 +80,6 @@ void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
 
     
     cv::warpPerspective(frame_mat, transformed_mat, transform, size, cv::INTER_LINEAR, cv::BORDER_CONSTANT, 0);
-    // cv::imshow("original", transformed_mat);
     s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
 
     auto &buf = s->buf.camera_bufs[buf_idx];
@@ -105,20 +104,19 @@ static void road_camera_thread(CameraState *s) {
   //   486); // height
 
   // camera-ar0233:
-  // cv::VideoCapture cap_road("v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
+  cv::VideoCapture cap_road("v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
   // camera-isx031:
   //cv::VideoCapture cap_road("nvv4l2camerasrc device=/dev/video0 ! 'video/x-raw(memory:NVMM),format=YUY2,width=1920,height=1536,framerate=30/1' ! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink drop=1");
   // cv::VideoCapture cap_road("nvv4l2camerasrc device=/dev/video0 ! video/x-raw(memory:NVMM),format=YUY2, width=1920,height=1536,framerate=30/1 ! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink drop=1", cv::CAP_GSTREAMER);
-  cv::VideoCapture cap_road("v4l2src device=/dev/video1 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
 
   // camera-ar0233:
-  // float ts[9] = {0.46414363, 0.0, 124.44721004,
-  //                 0.0, 0.46099291, 215.07801418,
-  //                 0.0, 0.0, 1.0};
-  // camera-isx031:
-  float ts[9] = {0.76528467, 0.0, -151.52535531,
-                  0.0, 0.76086957, -155.7173913,
+  float ts[9] = {0.46414363, 0.0, 124.44721004,
+                  0.0, 0.46099291, 215.07801418,
                   0.0, 0.0, 1.0};
+  // camera-isx031:
+  // float ts[9] = {0.76528467, 0.0, -151.52535531,
+  //                 0.0, 0.76086957, -155.7173913,
+  //                 0.0, 0.0, 1.0};
   run_camera(s, cap_road, ts);
 }
 
