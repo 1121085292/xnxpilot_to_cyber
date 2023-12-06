@@ -7,7 +7,7 @@
 #include <chrono>
 #include <thread>
 
-// #include "libyuv.h"
+#include "libyuv.h"
 #include <jpeglib.h>
 
 // // #include "xnxpilot/selfdrive/camerad/imgproc/utils.h"
@@ -48,7 +48,7 @@ static cl_program build_debayer_program(cl_device_id device_id, cl_context conte
 }
 // 分配内存，raw frame和RGB、YUV
 void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState* s, VisionIpcServer * v, 
-                  int frame_cnt, VisionStreamType rgb_type, VisionStreamType yuv_type) {
+                  int frame_cnt, VisionStreamType rgb_type, VisionStreamType yuv_type, release_cb release_callback) {
   vipc_server = v;
   this->rgb_type = rgb_type;
   this->yuv_type = yuv_type;
@@ -314,37 +314,40 @@ void publish_thumbnail(std::shared_ptr<apollo::cyber::Writer<Thumbnail>>& writer
 
 extern ExitHandler do_exit;
 
-// void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback) {
-// // // void processing_thread(MultiCameraState *cameras, CameraState *cs) {
-//   const char *thread_name = nullptr;
-//   if (cs == &cameras->road_cam) {
-//     thread_name = "RoadCamera";
-//   } else if (cs == &cameras->driver_cam) {
-//     thread_name = "DriverCamera";
-//   } else {
-//     thread_name = "WideRoadCamera";
-//   }
-//   set_thread_name(thread_name);
+void *processing_thread(MultiCameraState *cameras, CameraState *cs, std::shared_ptr<Writer<Thumbnail>>thumbnail_writer, 
+                                          std::shared_ptr<Writer<FrameData>>camera_writer, process_thread_cb callback) {
+  const char *thread_name = nullptr;
+  if (cs == &cameras->road_cam) {
+    thread_name = "RoadCamera";
+  } else if (cs == &cameras->driver_cam) {
+    thread_name = "DriverCamera";
+  } else {
+    thread_name = "WideRoadCamera";
+  }
+  set_thread_name(thread_name);
 
-//   uint32_t cnt = 0;
-//   while (!do_exit) {
-//     if (!cs->buf.acquire()) continue;
+  uint32_t cnt = 0;
+  while (!do_exit) {
+    if (!cs->buf.acquire()) continue;
 
-//     callback(cameras, cs, cnt);
+    callback(cameras, cs, cnt, camera_writer);
 
-//     if (cs == &(cameras->road_cam) && thumbnail_writer_ && cnt % 100 == 3) {
-//       // this takes 10ms???
-//       publish_thumbnail(thumbnail_writer_, &(cs->buf));
-//     }
-//     cs->buf.release();
-//     // ++cnt;
-//   }
+    if (cs == &(cameras->road_cam) && thumbnail_writer && cnt % 100 == 3) {
+      // this takes 10ms???
+      publish_thumbnail(thumbnail_writer, &(cs->buf));
+    }
+    cs->buf.release();
+    ++cnt;
+  }
 
-//   return NULL;
-// }
+  return NULL;
+}
 
 
-
+std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, std::shared_ptr<Writer<Thumbnail>>thumbnail_writer,
+                                                  std::shared_ptr<Writer<FrameData>>camera_writer, process_thread_cb callback) {
+  return std::thread(processing_thread, cameras, cs, thumbnail_writer, camera_writer, callback);
+}
 // // static void driver_cam_auto_exposure(CameraState *c, SubMaster &sm) {
 // //   static const bool is_rhd = Params().getBool("IsRHD");
 // //   struct ExpRect {int x1, x2, x_skip, y1, y2, y_skip;};
