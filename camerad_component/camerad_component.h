@@ -30,18 +30,11 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 
-#include "perception/camerad_component/cameras/camera_common.h"
-#include "common_msgs/camerad/frame_data.pb.h"
+#include "perception/camerad_component/cameras/camera_mipi.h"
 #include "perception/camerad_component/proto/camera_conf.pb.h"
 
-using apollo::cyber::Component;
-using apollo::cyber::Reader;
-using apollo::cyber::Writer;
 using camerad_component::proto::CameraConf;
 using camerad_component::proto::Format;
-
-using common_msgs::camerad::FrameData;
-using common_msgs::camerad::Thumbnail;
 
 std::unordered_map<Format, std::string> formatToString = {
   {Format::YUY2, "YUY2"},
@@ -49,43 +42,16 @@ std::unordered_map<Format, std::string> formatToString = {
   {Format::YUYV, "YUYV"},
 };
 
-extern ExitHandler do_exit;
+ExitHandler do_exit;
 
 class CameradComponent : public Component<> {
  public:
   bool Init() override;
   ~CameradComponent();
-  // bool isSensorExist(const std::string& name) const;
-  // std::string gstreamer_pipeline(std::string sensor_mode, std::string sensor_id, std::string flip_method, 
-  //                               int display_width, int display_height, Format format, int framerate);
-  typedef void (*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt);
 
  private:
   void run();
 
-
-  void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx);
-  void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, 
-                cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type);
-  void cameras_open(MultiCameraState *s);
-  void camera_open(CameraState *s, bool rear);
-
-  void process_road_camera(MultiCameraState *s, CameraState *c, int cnt);
-
-  static void road_camera_thread(CameraState *s);
-  void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts);
-
-
-  std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
-
-  void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
-
-  void cameras_run(MultiCameraState *s);
-
-  // void processing_thread();
-  // void road_camera_thread(std::shared_ptr<CameraState>& s);
-  // void run_camera(std::shared_ptr<CameraState>& s, cv::VideoCapture &video_cap, float *ts);
-  // void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<FrameData>& out_msg);
   std::shared_ptr<Writer<FrameData>> camera_writer_ = nullptr;
   std::shared_ptr<Writer<Thumbnail>> thumbnail_writer_ = nullptr;
 
@@ -110,12 +76,6 @@ class CameradComponent : public Component<> {
   int buffer_size_ = 16;
   const int32_t MAX_IMAGE_SIZE = 20 * 1024 * 1024;
   std::future<void> async_result_;
-  // std::future<void> res_;
-  // std::future<void> lister_;
   std::atomic<bool> running_ = {false};
 };
-
-// typedef void (CameradComponent::*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt);
-
-
 CYBER_REGISTER_COMPONENT(CameradComponent)
