@@ -17,15 +17,9 @@ cc_library(
     srcs = ["camerad_component.cc"],
     hdrs = ["camerad_component.h"],
     alwayslink = True,
-    copts = ["-std=c++17"],
+    copts = ["-std=c++17", "-pthread"],
     deps = [
-        "//cyber",
-        "//perception/camerad_component/cameras:camera_common",
+        "//perception/camerad_component/cameras:camera_mipi",
         "//perception/camerad_component/proto:camera_conf_cc_proto",
-        "//common_msgs/camerad:frame_data_cc_proto",
-        "@opencv//:core",
-        "@opencv//:highgui",
-        "@opencv//:videoio",
-        "@xnxpilot//:libyuv",
     ]
 )
