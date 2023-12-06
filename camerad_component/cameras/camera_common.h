@@ -15,10 +15,17 @@
 #include "perception/camerad_component/common/modeldata.h"
 // #include "xnxpilot/selfdrive/common/swaglog.h"
 // #include "xnxpilot/selfdrive/common/visionimg.h"
-#include "common_msgs/camerad/frame_data.pb.h"
 #include "perception/camerad_component/common/clutil.h"
-// #include "camera_mipi.h"
+
 #include "cyber/cyber.h"
+#include "common_msgs/camerad/frame_data.pb.h"
+
+using apollo::cyber::Component;
+using apollo::cyber::Reader;
+using apollo::cyber::Writer;
+
+using common_msgs::camerad::FrameData;
+using common_msgs::camerad::Thumbnail;
 
 #define FRAME_BUF_COUNT 16
 #define FRAME_WIDTH  1164
@@ -41,10 +48,9 @@
 #define CAMERA_ID_MAX 10
 
 #define UI_BUF_COUNT 4
-// #define FRAME_WIDTH  1164
-// #define FRAME_HEIGHT 874
-// #define FRAME_WIDTH_FRONT  1152
-// #define FRAME_HEIGHT_FRONT 864
+
+extern ExitHandler do_exit;
+
 typedef struct CameraInfo {
   int frame_width; 
   int frame_height;
@@ -53,53 +59,6 @@ typedef struct CameraInfo {
   int bayer_flip;
   bool hdr;
 } CameraInfo;
-
-CameraInfo cameras_supported[CAMERA_ID_MAX];
-
-void initializeCameraInfo() {
-    cameras_supported[CAMERA_ID_AR0233] = {
-        .frame_width = FRAME_WIDTH_FRONT,
-        .frame_height = FRAME_HEIGHT_FRONT,
-        .frame_stride = FRAME_WIDTH_FRONT * 3,
-        .bayer = false,
-        .bayer_flip = false,
-    };
-
-      cameras_supported[CAMERA_ID_ISX031] = {
-      FRAME_WIDTH,
-      FRAME_HEIGHT,
-      FRAME_WIDTH*3,
-      false,
-      false,
-    };
-}
-//  = {
-  // road facing
-  // [CAMERA_ID_IMX477] = {
-  //     .frame_width = FRAME_WIDTH,
-  //     .frame_height = FRAME_HEIGHT,
-  //     .frame_stride = FRAME_WIDTH*3,
-  //     .bayer = false,
-  //     .bayer_flip = false,
-  // },
-  // [CAMERA_ID_AR0233] = {
-  //     .frame_width = FRAME_WIDTH_FRONT,
-  //     .frame_height = FRAME_HEIGHT_FRONT,
-  //     .frame_stride = FRAME_WIDTH_FRONT*3,
-  //     .bayer = false,
-  //     .bayer_flip = false,
-  // },
-  // [CAMERA_ID_ISX031] = {
-  //     FRAME_WIDTH,
-  //     FRAME_HEIGHT,
-  //     FRAME_WIDTH*3,
-  //     false,
-  //     false,
-  // },
-// };
-
-using common_msgs::camerad::Thumbnail;
-using common_msgs::camerad::FrameData;
 
 enum CameraID {
   IMX298 = 0,
@@ -140,8 +99,6 @@ enum CameraType {
 // const bool env_send_wide_road = getenv("SEND_WIDE_ROAD") != NULL;
 
 typedef void (*release_cb)(void *cookie, int buf_idx);
-
-
 
 typedef struct LogCameraInfo {
   CameraType type;
@@ -193,7 +150,7 @@ class CameraBuf {
 private:
   VisionIpcServer *vipc_server;
   CameraState *camera_state;
-  // std::shared_ptr<CameraState> camera_state;
+
   cl_kernel krnl_debayer;
 
   std::unique_ptr<Rgb2Yuv> rgb2yuv;
@@ -221,12 +178,11 @@ public:
   // CameraBuf() = default;
   ~CameraBuf();
   void init(cl_device_id device_id, cl_context context, CameraState* s, VisionIpcServer * v, 
-              int frame_cnt, VisionStreamType rgb_type, VisionStreamType yuv_type);
+              int frame_cnt, VisionStreamType rgb_type, VisionStreamType yuv_type, release_cb release_callback = nullptr);
   bool acquire();
   void release();
   void queue(size_t buf_idx);
 };
-
 
 typedef struct CameraState {
   CameraInfo ci;
@@ -245,6 +201,9 @@ typedef struct MultiCameraState {
 //   PubMaster *pm;
 } MultiCameraState;
 
+
+typedef void (*process_thread_cb)(MultiCameraState *s, CameraState *c, int cnt,  std::shared_ptr<Writer<FrameData>>camera_writer);
+
 void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<common_msgs::camerad::FrameData>& out_msg);
 // kj::Array<uint8_t> get_frame_image(const CameraBuf *b);
 // float set_exposure_target(const CameraBuf *b, int x_start, int x_end, int x_skip, int y_start, int y_end, int y_skip);
@@ -252,8 +211,11 @@ void fill_frame_data(const FrameMetadata &frame_data, std::shared_ptr<common_msg
 
 void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx);
 void cameras_open(MultiCameraState *s);
-void cameras_run(MultiCameraState *s);
+void cameras_run(MultiCameraState *s, std::shared_ptr<Writer<Thumbnail>>thumbnail_writer,
+                                          std::shared_ptr<Writer<FrameData>>camera_writer);
 void cameras_close(MultiCameraState *s);
 // void camera_autoexposure(CameraState *s, float grey_frac);
 
 void publish_thumbnail(std::shared_ptr<apollo::cyber::Writer<Thumbnail>>& writer, const CameraBuf *b);
+std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, std::shared_ptr<Writer<Thumbnail>>thumbnail_writer,
+                                                  std::shared_ptr<Writer<FrameData>>camera_writer, process_thread_cb callback);
