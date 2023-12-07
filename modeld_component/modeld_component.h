@@ -31,6 +31,7 @@ using common_msgs::lateral_plan::LateralPlan;
 using common_msgs::model_data_v2::ModelDataV2;
 using common_msgs::camerad::FrameData;
 
+ExitHandler do_exit;
 class ModeldComponent : public Component<FrameData, LateralPlan> {
   public:
     bool Init() override;
