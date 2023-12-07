@@ -93,7 +93,7 @@ void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
   }
 }
 
-static void road_camera_thread(CameraState *s) {
+static void road_camera_thread(CameraState *s, cv::VideoCapture cap_road) {
   set_thread_name("mipi_road_camera_thread");
 
   // std::string pipeline = gstreamer_pipeline(
@@ -104,7 +104,7 @@ static void road_camera_thread(CameraState *s) {
   //   486); // height
 
   // camera-ar0233:
-  cv::VideoCapture cap_road("v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
+  // cv::VideoCapture cap_road("v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
   // camera-isx031:
   //cv::VideoCapture cap_road("nvv4l2camerasrc device=/dev/video0 ! 'video/x-raw(memory:NVMM),format=YUY2,width=1920,height=1536,framerate=30/1' ! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink drop=1");
   // cv::VideoCapture cap_road("nvv4l2camerasrc device=/dev/video0 ! video/x-raw(memory:NVMM),format=YUY2, width=1920,height=1536,framerate=30/1 ! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink drop=1", cv::CAP_GSTREAMER);
@@ -155,12 +155,13 @@ void process_road_camera(MultiCameraState *s, CameraState *c, int cnt, std::shar
   camera_writer->Write(out_msg);
 }
 
-void cameras_run(MultiCameraState *s, std::shared_ptr<Writer<Thumbnail>>thumbnail_writer, std::shared_ptr<Writer<FrameData>>camera_writer) {
+void cameras_run(MultiCameraState *s, cv::VideoCapture cap_road, std::shared_ptr<Writer<Thumbnail>>thumbnail_writer,
+                                                                 std::shared_ptr<Writer<FrameData>>camera_writer) {
   std::vector<std::thread> threads;
   threads.push_back(start_process_thread(s, &s->road_cam, thumbnail_writer, camera_writer, process_road_camera));
   // threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
 
-  std::thread t_rear = std::thread(road_camera_thread, &s->road_cam);
+  std::thread t_rear = std::thread(road_camera_thread, &s->road_cam, cap_road);
   set_thread_name("mipi_thread");
 
   // std::thread t_front = std::thread(driver_camera_thread, &s->driver_cam);
