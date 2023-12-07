@@ -1,0 +1,62 @@
+syntax = "proto2";
+
+package common_msgs.camerad;
+
+message FrameData {
+  optional uint32 frame_id = 1;
+  optional uint32 encode_id = 2 [deprecated = true];    //  DEPRECATED
+  
+  optional FrameType frame_type = 3;
+  optional int32 frame_length = 4;
+
+  //  Timestamps    
+  optional uint64 timestamp_eof = 5;
+  optional uint64 timestamp_sof = 6;
+
+  //  Exposure
+  optional int32 integ_lines = 7;
+  optional bool high_conversion_gain = 8;
+  optional float gain = 23;
+  optional float measured_grey_fraction = 9;
+  optional float target_grey_fraction = 10;
+
+  //  Focus
+  optional int32 lens_pos = 11;
+  optional float lens_sag = 12;
+  optional float lens_err = 13;
+  optional float lens_true_pos = 14;
+  repeated int32 focus_val = 16;
+  repeated uint32 focus_conf = 17;
+  repeated uint32 sharpness_score = 18;
+  optional int32 recover_state = 19;
+  
+  repeated float transform = 15;
+  
+  optional AndroidCaptureResult android_capture_result = 20;
+  
+  optional bytes image = 21;
+  optional int32 global_gain_DEPRECATED =22 [deprecated = true];
+
+  enum FrameType {
+    unknown = 0;
+    neo = 1;
+    chffrAndroid = 2;
+    front = 3;
+  }
+
+  message AndroidCaptureResult {
+    optional int32 sensitivity = 1;
+    optional int64 frame_duration = 2;
+    optional int64 exposure_time = 3;
+    optional uint64 rolling_shutterSkew = 4;
+    repeated int32 color_correction_transform = 5;
+    repeated float color_correction_gains = 6;
+    optional int32 display_rotation = 7;
+  }
+}
+
+message Thumbnail {
+  optional uint32 frame_id = 1;
+  optional uint64 timestamp_eof = 2;
+  optional bytes thumbnail = 3;
+}

@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package common_msgs.camera_odometry;
+
+import "modules/common_msgs/basic_msgs/error_code.proto";
+
+message CameraOdometry {
+  // Translation in meters per second in device frame
+  repeated float trans = 1;
+
+  // Rotation in radians per second in device frame
+  repeated float rot = 2;
+
+  // Standard deviation of translation in meters per second in device frame
+  repeated float trans_std = 3;
+
+  // Standard deviation of rotation in radians per second in device frame
+  repeated float rot_std = 4;
+
+    // Frame ID
+  optional uint32 frame_id = 5;
+
+  // Timestamp at the end of frame
+  optional uint64 timestamp_eof = 6;
+
+  optional apollo.common.ErrorCode error_code = 7 [default = PERCEPTION_ERROR_NONE];
+}

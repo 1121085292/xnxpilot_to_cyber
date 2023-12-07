@@ -1,0 +1,100 @@
+syntax = "proto2";
+
+package common_msgs.model_data_v2;
+
+import "modules/common_msgs/basic_msgs/error_code.proto";
+
+// All SI units and in device frame
+message XYZTData {
+    repeated float x =7;
+    repeated float y =1;
+    repeated float z =2;
+    repeated float t =3;
+    repeated float x_std =4;
+    repeated float y_std =5;
+    repeated float z_std =6;
+}
+
+message LeadDataV2 {
+    optional float prob =4; // probability that car is your lead at time t
+    optional float t =1;
+    
+    // x and y are relative position in device frame
+    // v is norm relative speed
+    // a is norm relative acceleration
+    repeated float xyva =2;
+    repeated float xyva_Std =3;
+}
+
+message LeadDataV3 {
+    optional float prob =11; // probability that car is your lead at time t
+    optional float probTime =1;
+    repeated float t =2;    
+
+    // x and y are relative position in device frame
+    // v absolute norm speed
+    // a is derivative of v
+    repeated float x =3;
+    repeated float x_std =4;
+    repeated float y =5;
+    repeated float y_std =6;
+    repeated float v =7;
+    repeated float v_std =8;
+    repeated float a =9;
+    repeated float a_std =10;
+}
+
+
+message MetaData {
+    optional float engaged_prob =8;
+    repeated float desire_prediction =1;
+    repeated float desire_state =5;
+    repeated DisengagePredictions disengage_predictions =6;
+    optional bool hard_brake_predicted =7;
+
+    // deprecated
+    optional float brakeDisengageProbDEPRECATED =2;
+    optional float gasDisengageProbDEPRECATED =3;
+    optional float steerOverrideProbDEPRECATED =4;
+}
+
+message DisengagePredictions {
+    repeated float t =7;
+    repeated float brake_disengage_probs =1;
+    repeated float gas_disengage_probs =2;
+    repeated float steer_override_probs =3;
+    repeated float brake_3meters_per_second_squared_probs =4;
+    repeated float brake_4meters_per_second_squared_probs =5;
+    repeated float brake_5meters_per_second_squared_probs =6;
+}
+
+message ModelDataV2 {
+  optional uint32 frame_id = 19;
+  optional uint32 frame_age = 1;
+  optional float frame_drop_perc = 2;
+  optional uint64 timestamp_eof = 3;
+  optional float model_execution_time =15;
+  optional float gpu_execution_time =17;
+  optional bytes  raw_predictions =16;
+
+  // predicted future position, orientation, etc..
+  repeated XYZTData position = 4;
+  repeated XYZTData orientation =5;
+  repeated XYZTData velocity =6;
+  repeated XYZTData orientation_rate =7;
+
+  // prediction lanelines and road edges
+  repeated XYZTData lane_lines =8;
+  repeated float lane_line_probs =9;
+  repeated float lane_line_stds =13;
+  repeated XYZTData road_edges =10;
+  repeated float road_edge_stds =14;
+
+  // predicted lead cars
+  repeated LeadDataV2 leads =11;
+  repeated LeadDataV3 leads_v3 =18;
+
+  repeated MetaData meta =12;
+
+  optional apollo.common.ErrorCode error_code = 20 [default = PERCEPTION_ERROR_NONE];
+}
