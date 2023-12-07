@@ -36,7 +36,7 @@ cc_library(
             "visionipc.h"],
     copts = ["-std=c++17"],
     deps = [
-        "@opencl//:opencl",
+        "@xnxpilot//:opencl",
     ]
 )
 
