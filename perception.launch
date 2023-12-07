@@ -1,7 +1,9 @@
 <cyber>
     <module>
-        <name>modeldcomponent</name>
-        <dag_conf>perception/perception.dag</dag_conf>
-        <process_name>modeld</process_name>
+        <name>perception</name>
+        <dag_conf>../perception/modeld_component/modeld.dag</dag_conf>
+        <dag_conf>../perception/camerad_component/camerad.dag</dag_conf>
+        <dag_conf>../perception/calibrationd_component/calibration.dag</dag_conf>
+        <process_name>perception</process_name>
     </module>
 </cyber>
