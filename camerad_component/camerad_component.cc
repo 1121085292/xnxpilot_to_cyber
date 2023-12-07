@@ -33,8 +33,7 @@ bool CameradComponent::Init() {
   context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
 
   vipc_server.setVisionIpcServer("camerad", device_id, context);
-  cap_road.open("v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
-  
+
   async_result_ = apollo::cyber::Async(&CameradComponent::run, this);
   return true;
 }
@@ -48,9 +47,7 @@ void CameradComponent::run() {
 }
 
 CameradComponent::~CameradComponent() {
-  if(cap_road.isOpened()){
-    cap_road.release();
-  }
+  CL_CHECK(clReleaseContext(context));
   if (running_.load()) {
     running_.exchange(false);
     async_result_.wait();
