@@ -86,12 +86,12 @@ void CameradComponent::run() {
 }
 
 CameradComponent::~CameradComponent() {
+  if(cap_road.isOpened()){
+    cap_road.release();
+  }
   if (running_.load()) {
     running_.exchange(false);
     async_result_.wait();
-  }
-  if(cap_road.isOpened()){
-    cap_road.release();
   }
 }
 
