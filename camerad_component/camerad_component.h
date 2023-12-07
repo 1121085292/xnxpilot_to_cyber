@@ -61,7 +61,6 @@ class CameradComponent : public Component<> {
   VisionIpcServer vipc_server;
 
   MultiCameraState cameras;
-  cv::VideoCapture cap_road;
 
   std::future<void> async_result_;
   std::atomic<bool> running_ = {false};
