@@ -54,6 +54,7 @@ class CameradComponent : public Component<> {
 
   std::shared_ptr<Writer<FrameData>> camera_writer_ = nullptr;
   std::shared_ptr<Writer<Thumbnail>> thumbnail_writer_ = nullptr;
+  std::shared_ptr<CameraConf> camera_conf_;
 
   cl_device_id device_id;
   cl_context context;
