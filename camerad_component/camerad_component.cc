@@ -24,45 +24,6 @@ bool CameradComponent::Init() {
   }
   AINFO << "Camera config: " << camera_conf_->DebugString();
 
-  //camera type RoadCam
-  // road_cam = std::make_shared<CameraState>();
-  // road_cam->camera_type = CameraType::RoadCam;
-
-  // camera name
-  camera_name_ = camera_conf_->camera_name();     //  AR0233
-  // if(!isSensorExist(camera_name_)){
-  //   AERROR << "camera name not support!";
-  //   return apollo::cyber::FAIL;
-  // }
-
-  //  openpilot camera frame info
-  // road_cam->ci.frame_width = camera_conf_->frame_width();     //  1164
-  // road_cam->ci.frame_height = camera_conf_->frame_height();   //  874
-  // road_cam->ci.bayer = camera_conf_->bayer();                 //  false
-  // road_cam->ci.bayer_flip = camera_conf_->bayer_flip();       //  false
-  // road_cam->ci.frame_stride = camera_conf_->frame_width() * 3;
-  // // frame size = frame height * frame stride
-  // if (camera_conf_->format() == Format::YUY2 || camera_conf_->format() == Format::RGB) {
-  //   road_cam->ci.frame_size = road_cam->ci.frame_width * road_cam->ci.frame_height * 3;
-  // } else if (camera_conf_->format() == Format::YUYV) {
-  //   road_cam->ci.frame_size = road_cam->ci.frame_width * road_cam->ci.frame_height * 2;
-  // }
-  // if (road_cam->ci.frame_size > MAX_IMAGE_SIZE) {
-  //   AERROR << "image size is too big ,must less than " << MAX_IMAGE_SIZE
-  //           << " bytes.";
-  //   return false;
-  // }
-
-  //  display info
-  // sensor_mode_ = camera_conf_->sensor_mode();         //  v4l2src
-  // sensor_id_ = camera_conf_->sensor_id();             //  /dev/video0
-  // flip_method_ = camera_conf_->flip_method();         //  x-raw
-  // format_ = camera_conf_->format();                   //  Format::YUV2
-  // display_width_ = camera_conf_->display_width();     //  1536
-  // display_height_ = camera_conf_->display_height();   //  1920
-  // frame_rate_ = camera_conf_->frame_rate();           //  30
-  // fps_ = camera_conf_->fps();                         //  20
-
   camera_writer_ = node_->CreateWriter<FrameData>(camera_conf_->camera_channel_name());
   thumbnail_writer_ = node_->CreateWriter<Thumbnail>(camera_conf_->thumbnail_channel_name());
  
@@ -70,9 +31,10 @@ bool CameradComponent::Init() {
   device_id = cl_get_device_id(CL_DEVICE_TYPE_GPU);
   // device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);
   context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
-  // vipc_server = VisionIpcServer("camerad", device_id, context);
+
   vipc_server.setVisionIpcServer("camerad", device_id, context);
   cap_road.open("v4l2src device=/dev/video0 ! video/x-raw, width=(int)1920, height=(int)1080,format=(string)YUY2, framerate=(fraction)30/1 ! appsink");
+  
   async_result_ = apollo::cyber::Async(&CameradComponent::run, this);
   return true;
 }
