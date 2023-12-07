@@ -58,24 +58,10 @@ class CameradComponent : public Component<> {
   cl_device_id device_id;
   cl_context context;
   VisionIpcServer vipc_server;
-  // std::shared_ptr<CameraState> road_cam;
+
   MultiCameraState cameras;
   cv::VideoCapture cap_road;
 
-  std::shared_ptr<CameraConf> camera_conf_;
-  std::string camera_name_;
-  std::string sensor_mode_;
-  std::string sensor_id_;
-  std::string flip_method_;
-  Format format_;
-  int display_width_;
-  int display_height_;
-  int frame_rate_;
-  int fps_;
-
-  // int index_ = 0;
-  int buffer_size_ = 16;
-  const int32_t MAX_IMAGE_SIZE = 20 * 1024 * 1024;
   std::future<void> async_result_;
   std::atomic<bool> running_ = {false};
 };
