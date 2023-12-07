@@ -173,6 +173,8 @@ void ModeldComponent::posenet_publish(uint32_t vipc_frame_id, uint32_t vipc_drop
 }
 
 ModeldComponent::~ModeldComponent(){
+  model_free(model_.get());
+  CL_CHECK(clReleaseContext(context));
   if(running_.load()){
     running_.exchange(false);
     res_.wait();
