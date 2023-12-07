@@ -9,5 +9,5 @@ def repo():
     native.new_local_repository(
         name = "xnxpilot",
         build_file = clean_dep("//third_party/xnxpilot:xnxpilot.BUILD"),
-        path = "/home/xzy/DowmLoads/apollo-master/xnxpilot",
+        path = "xnxpilot",
     )
