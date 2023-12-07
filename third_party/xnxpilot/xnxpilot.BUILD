@@ -7,7 +7,7 @@ cc_library(
     includes = ["include"],
     hdrs = glob(["include/**/*"]),
     linkopts = [
-        "-L/home/xzy/DowmLoads/apollo-master/xnxpilot/lib",
+        "-Lxnxpilot/lib",
         "-lOpenCL",
     ],
 )
@@ -17,7 +17,7 @@ cc_library(
     includes = ["include"],
     hdrs = glob(["include/**/*"]),
     linkopts = [
-        "-L/home/xzy/DowmLoads/apollo-master/xnxpilot/lib",
+        "-Lxnxpilot/lib",
         "-lzmq",
     ],
 )
@@ -27,7 +27,7 @@ cc_library(
     includes = ["include"],
     hdrs = glob(["include/**/*"]),
     linkopts = [
-        "-L/home/xzy/DowmLoads/apollo-master/xnxpilot/lib",
+        "-Lxnxpilot/lib",
         "-lGLESv2",
     ],
 )
@@ -47,21 +47,7 @@ cc_library(
     includes = ["include"],
     hdrs = glob(["include/**/*"]),
     linkopts = [
-        "-L/home/xzy/DowmLoads/apollo-master/xnxpilot/lib",
+        "-Lxnxpilot/lib",
         "-ljpeg",
-    ],
-)
-
-cc_library(
-    name = "boost",
-    includes = ["include"],
-    hdrs = glob(["include/**/*"]),
-    linkopts = [
-        "-L/home/xzy/DowmLoads/apollo-master/xnxpilot/lib",
-        "-lboost_filesystem",
-        "-lboost_data_time",
-        "-lboost_iostream",
-        "-lboost_locale",
-        "-lboost_thread",
     ],
 )
