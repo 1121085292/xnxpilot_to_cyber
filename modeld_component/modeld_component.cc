@@ -5,12 +5,7 @@ bool ModeldComponent::Init()
   camera_odometry_writer_ = node_->CreateWriter<CameraOdometry>("CameraOdometry");
   model_data_v2_writer_ = node_->CreateWriter<ModelDataV2>("ModelDataV2"); 
 
-  calibration_ = std::make_shared<LiveCalibrationData>();
-  calibration_reader_ = node_->CreateReader<LiveCalibrationData>(
-      "liveCalibration", [this](const std::shared_ptr<LiveCalibrationData>& calibration){
-        std::lock_guard<std::mutex> lock(mutex_);
-        calibration_->CopyFrom(*calibration);
-      });
+
   
   wide_camera_ = Hardware::TICI() ? params_.getBool("EnableWideCamera") : false;
 
@@ -24,28 +19,22 @@ bool ModeldComponent::Init()
   model_init(model_, device_id_, context_);
   AINFO << "models loaded, modeld starting";
 
-  vipc_client_ = VisionIpcClient("camerad", wide_camera_ ? VISION_STREAM_YUV_WIDE : VISION_STREAM_YUV_BACK, true, device_id_, context_);
-  while (!vipc_client_.connect(false))
-  {
-    util::sleep_for(100);
-  }
-  
-  // frame_dropped_filter_.setFirstOrderFilter(0., 10., 1. / MODEL_FREQ);
   frame_dropped_filter_ = FirstOrderFilter(0., 10., 1. / MODEL_FREQ);
   frame_id_ = 0;
   last_vipc_frame_id_ = 0;
   last_ = 0.0;
   run_count_ = 0;
-
+  
+  vipc_client_ = VisionIpcClient("camerad", wide_camera_ ? VISION_STREAM_YUV_WIDE : VISION_STREAM_YUV_BACK, true, device_id_, context_);
+  while (!do_exit && !vipc_client.connect(false)) {
+    util::sleep_for(100);
+  }
   return true;
 }
 
 bool ModeldComponent::Proc(const std::shared_ptr<FrameData> &frame_data, 
                             const std::shared_ptr<LateralPlan> &lateral_plan) {
-  if(!vipc_client_.connected){
-    apollo::cyber::Rate rate(10.0);
-    rate.Sleep();
-  } else {
+  if(vipc_client_.connected && !do_exit){
     const VisionBuf *b = &vipc_client_.buffers[0];
     AINFO << "connected with buffer size:" << b->len << "(" << b->width << "X" << b->height <<")";
     VisionIpcBufExtra extra = {};
@@ -99,6 +88,13 @@ bool ModeldComponent::Proc(const std::shared_ptr<FrameData> &frame_data,
 
 void ModeldComponent::calibration_thread() {
   running_.exchange(true);
+
+  calibration_ = std::make_shared<LiveCalibrationData>();
+  calibration_reader_ = node_->CreateReader<LiveCalibrationData>(
+      "liveCalibration", [this](const std::shared_ptr<LiveCalibrationData>& calibration){
+        std::lock_guard<std::mutex> lock(mutex_);
+        calibration_->CopyFrom(*calibration);
+      });
   /*
      import numpy as np
      from common.transformations.model import medmodel_frame_from_road_frame
@@ -115,7 +111,7 @@ void ModeldComponent::calibration_thread() {
                                       wide_camera_ ? ecam_intrinsic_matrix.v : fcam_intrinsic_matrix.v);
   const mat3 yuv_transform = get_model_yuv_transform();
 
-  while (!apollo::cyber::IsShutdown()) {
+  while (!do_exit) {
     auto extrinsic_matrix = calibration_->extrinsic_matrix();
     Eigen::Matrix<float, 3, 4> extrinsic_matrix_eigen;
     for (int i = 0; i < 4*3; i++) {
