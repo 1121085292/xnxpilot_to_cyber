@@ -60,6 +60,7 @@ class CameradComponent : public Component<> {
   VisionIpcServer vipc_server;
   // std::shared_ptr<CameraState> road_cam;
   MultiCameraState cameras;
+  cv::VideoCapture cap_road;
 
   std::shared_ptr<CameraConf> camera_conf_;
   std::string camera_name_;
