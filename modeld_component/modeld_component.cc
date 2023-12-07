@@ -5,8 +5,6 @@ bool ModeldComponent::Init()
   camera_odometry_writer_ = node_->CreateWriter<CameraOdometry>("CameraOdometry");
   model_data_v2_writer_ = node_->CreateWriter<ModelDataV2>("ModelDataV2"); 
 
-
-  
   wide_camera_ = Hardware::TICI() ? params_.getBool("EnableWideCamera") : false;
 
   res_ = apollo::cyber::Async(&ModeldComponent::calibration_thread, this);
@@ -26,7 +24,7 @@ bool ModeldComponent::Init()
   run_count_ = 0;
   
   vipc_client_ = VisionIpcClient("camerad", wide_camera_ ? VISION_STREAM_YUV_WIDE : VISION_STREAM_YUV_BACK, true, device_id_, context_);
-  while (!do_exit && !vipc_client.connect(false)) {
+  while (!do_exit && !vipc_client_.connect(false)) {
     util::sleep_for(100);
   }
   return true;
