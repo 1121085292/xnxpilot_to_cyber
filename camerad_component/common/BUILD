@@ -21,7 +21,7 @@ cc_library(
     hdrs = ["clutil.h"],
     deps = [
         ":util",
-        "@opencl//:opencl",
+        "@xnxpilot//:opencl",
     ],
     copts = ["-std=c++17"],
 )
