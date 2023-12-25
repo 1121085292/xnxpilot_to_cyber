@@ -22,7 +22,7 @@ else
     clinfo \
     opencl-headers \
     opencl-dev \
-    # lib* \
+    libpocl2
 fi
 
 # zmq
