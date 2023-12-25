@@ -5,7 +5,7 @@
 ### OpenCV  
 `sudo bash docker/build/installers/install_opencv.sh`  
 ### GLES3  
-`sudo apt update`
+`sudo apt update`  
 `sudo apt install libgles2-mesa-dev`  
 ### OpenCL  
 `sudo apt install clinfo opencl-headers opencl-dev libpocl2`  
