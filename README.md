@@ -1,5 +1,5 @@
 # Perception Layer  
-基于xnxpilot的感知层模块，改写成Cyber RT中Component形式进行通信，需要在apollo项目根目录运行  
+基于xnxpilot的感知层模块，改写成Cyber RT中Component形式进行通信，需要在#apollo#项目根目录运行  
 # Installation
 ## third_party install  
 ### OpenCV  
@@ -23,7 +23,7 @@
 在third_party/opencv/opencv.BUILD中，新增`cc_library`规则  
 `cc_library(`  
 `    name = "videoio",`  
-`    includes = ["."]`  
+`    includes = ["."],`  
 `    linkopts = [`  
 `        "-L/opt/apollo/sysroot/lib",`  
 `        "-lopencv_videoio"`  
