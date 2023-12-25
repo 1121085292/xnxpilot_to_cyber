@@ -33,6 +33,11 @@
 `        ":imgproc",`  
 `        ":highgui"`  
 `    ]`  
+### tools  
+在根目录下的tools/workspace.bzl文件内倒入配置的第三方依赖库  
+新增`load("//third_party/openpilot:workspace.bzl", openpilot = "repo")`  
+然后在`initialize_third_party()`方法内添加`openpilot()`，之后就可以在BUILD文件中的deps内使用`@openpilot//:repo`的形式依赖自定义安装的三方库，`repo`换成通过`cc_library`自定义的`name`  
+
 
 
 
