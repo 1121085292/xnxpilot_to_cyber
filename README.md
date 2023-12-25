@@ -19,5 +19,20 @@
 `make`  
 `make install`  
 ## third_party config  
+### OpenCV  
+在third_party/opencv/opencv.BUILD中，新增`cc_library`规则  
+`cc_library(`  
+  `name = "videoio",`  
+  `includes = ["."]`  
+  `linkopts = [`  
+        `"-L/opt/apollo/sysroot/lib",`  
+        `"-lopencv_videoio"`  
+    `],`
+    `deps = [`  
+        `":core",`  
+        `":imgproc",`  
+        `":highgui"`  
+    `]`  
+
 
 
