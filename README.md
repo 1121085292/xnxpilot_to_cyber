@@ -43,6 +43,7 @@
 Debug模式，执行`bazel build perception:libperception.so -c dbg`  
 ## Run  
 通过cyber_launch和mainboard命令行启动各模块（camerad、calibrationd、modeld和radard）  
-e.g.  
+e.g.:  
 `cyber_launch start perception/camerad_component/camerad.launch`  
-`mainboard -d perception/camerad_compoent/camerad.dag`
+`mainboard -d perception/camerad_compoent/camerad.dag`  
+通过`cyber_monitor`监测通道数据
