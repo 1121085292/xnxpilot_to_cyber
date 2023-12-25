@@ -12,12 +12,12 @@
 ### ZeroMQ  
 `sudo apt install libzmq3-dev`  
 ### libyuv  
-`git clone https://chromium.googlesource.com/libyuv/libyuv  
-cd libyuv  
-mkdir build && cd build  
-cmake ..  
-make  
-make install`  
+`git clone https://chromium.googlesource.com/libyuv/libyuv`  
+`cd libyuv`  
+`mkdir build && cd build`  
+`cmake ..`  
+`make`  
+`make install`  
 ## third_party config  
 
 
