@@ -47,3 +47,53 @@ e.g.:
 `cyber_launch start perception/camerad_component/camerad.launch`  
 `mainboard -d perception/camerad_compoent/camerad.dag`  
 通过`cyber_monitor`监测通道数据
+
+
+sequenceDiagram
+    participant G as main
+    participant F as radard_thread
+    participant A as RadarD
+    participant C as get_lead
+    participant D as Cluster
+    participant B as match_vision_to_cluster
+    participant E as Track
+
+    G ->> F: main()
+
+    F ->> F: config_realtime_process
+    F ->> F: Ratekeeper, Priority.CTRL_LOW
+    F ->> F: SubMaster, PubMaster
+    F ->> F: RadarInterface, CarParams
+    F ->> F: while 1
+    F ->> A: update(sm, rr, enable_lead)
+    A ->> A: update self.current_time, self.v_ego, self.v_ego_hist
+    A ->> F: dat = RD.update(sm, rr, enable_lead)
+    A ->> pm: pm.send('radarState', dat)
+    A ->> pm: pm.send('liveTracks', dat)
+    F ->> F: rk.monitor_time()
+
+    G ->> F: main()
+
+    Note right of A: KalmanParams, Cluster, Track\nand other imports
+    Note right of A: laplacian_cdf, interp, math, defaultdict, deque, messaging, car, numpy_fast, Params, realtime, config_realtime_process, RADAR_TO_CAMERA\nand other imports
+
+    Note right of C: match_vision_to_cluster\nget_lead
+    C ->> B: match_vision_to_cluster(v_ego, lead_msg, clusters)
+    B ->> D: prob(c)
+    D ->> E: add(self.tracks[idens[idx]])
+    C ->> C: return lead_dict
+    C ->> C: low_speed_override
+    C ->> D: Cluster().get_RadarState_from_vision(lead_msg, v_ego)
+    C ->> C: lead_dict = closest_cluster.get_RadarState()
+    C ->> D: reset_a_lead(aLeadK, aLeadTau)
+    C ->> C: return lead_dict
+
+    Note right of F: enable_lead
+    F ->> F: can_sock, sm, pm
+    F ->> F: RI, RD
+    F ->> F: while loop, RI.update
+    F ->> F: RD.update
+    F ->> F: pm.send('radarState', dat)
+    F ->> F: pm.send('liveTracks', dat)
+
+    G ->> F: main()
